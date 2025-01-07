@@ -1,0 +1,186 @@
+/* Global body styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  height: 100%; /* Allow body to extend beyond the viewport */
+  overflow: auto; /* Allow scrolling */
+  background-color: #203652; /* Fallback background color in case 3D background isn't visible */
+}
+
+/* Main container */
+.main-container {
+  display: flex; /* Flexbox layout to allow the sidebar and content to sit side-by-side */
+  position: relative;
+  height: 100%; /* Full height */
+  width: 100%;
+}
+
+/* 3D rotating background */
+.background-3d {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, #4f76a1, #203652); /* Replace image with a gradient background */
+  transform-style: preserve-3d;
+  animation: rotate 60s infinite linear;
+  z-index: -1; /* Place it behind other content */
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(360deg); /* Rotate background to create the 3D effect */
+  }
+}
+
+/* Sidebar styles */
+.sidebar {
+  width: 250px; /* Sidebar width */
+  background-color: #2c3e50; /* Sidebar background */
+  color: white;
+  padding: 20px;
+  position: fixed; /* Keep the sidebar fixed */
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow-y: auto; /* Allow scrolling inside sidebar if necessary */
+  z-index: 1; /* Sidebar sits above background */
+  box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1); /* Add subtle shadow to the sidebar */
+}
+
+.sidebar h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+.category-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.category-list li {
+  margin-bottom: 15px;
+}
+
+.category-link {
+  color: #ecf0f1;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.category-link:hover {
+  color: #3498db;
+}
+
+.category-description {
+  display: block;
+  font-size: 0.9rem;
+  color: #bdc3c7;
+  margin-top: 5px;
+}
+
+/* Content section styles */
+.content {
+  margin-left: 270px; /* Ensure content doesn't overlap the sidebar */
+  padding: 20px;
+  background-color: #ecf0f1;
+  height: 100%;
+  overflow-y: auto; /* Allow scrolling of content */
+}
+
+/* Content text styles */
+h1,
+p {
+  color: rgb(231, 230, 230);
+  text-shadow: 1px 1px 5px rgba(82, 81, 81, 0.5);
+}
+
+/* Specific Register Page styles */
+.register-page {
+  position: relative;
+  height: 100%; /* Ensure the page takes up full height */
+  padding: 2rem;
+  overflow-y: auto; /* Allow scrolling of the page */
+}
+
+.register-page .background-3d {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, #4f76a1, #203652); /* Same gradient background for consistency */
+  transform-style: preserve-3d;
+  animation: rotate 20s infinite linear;
+  z-index: -1; /* Background behind content */
+}
+
+.register-page .content {
+  position: relative;
+  z-index: 2; /* Ensure content stays above the 3D background */
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.5); /* Add a slight background overlay for better contrast */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Register form and input styles */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #355168;
+}
+
+.input-group input {
+  padding: 0.8rem;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+}
+
+/* Submit button styles */
+.submit-btn {
+  padding: 0.8rem;
+  background-color: #7295bb;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.submit-btn:hover {
+  background-color: #40709c;
+}
+
+/* Responsive sidebar for mobile screens */
+@media screen and (max-width: 768px) {
+  .sidebar {
+    width: 100%; /* Sidebar should take up full width */
+    height: auto;
+    position: relative; /* Sidebar should be inside content area on mobile */
+  }
+
+  .content {
+    margin-left: 0;
+    padding: 10px;
+  }
+}
