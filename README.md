@@ -36,7 +36,7 @@ PostgreSQL (Make sure you have PostgreSQL set up locally or use a cloud instance
 Clone the repository
 bash
 
-git clone https://github.com/yinkus89/marketplace-app.git
+git clone https://github.com/yinkus89/marketplace1-app.git
 cd marketplace-app
 Setup Backend (Node.js + PostgreSQL)
 Install backend dependencies:
