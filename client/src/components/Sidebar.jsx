@@ -1,29 +1,58 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const Sidebar = ({ onCategorySelect }) => {
+const Sidebar = ({ onCategorySelect, isSidebarOpen, toggleSidebar }) => {
   const categories = [
-    { name: "Electronics", description: "Devices, gadgets, and accessories" },
-    { name: "Clothing", description: "Apparel, shoes, and accessories" },
-    { name: "Home Appliances", description: "Kitchen and home appliances" },
-    { name: "Furniture", description: "Furniture for home and office" },
-    { name: "Books", description: "All kinds of books" },
-    { name: "Sports", description: "Sports equipment and apparel" },
+    { name: "Electronics", description: "Devices and gadgets" },
+    { name: "Clothing", description: "Apparel and accessories" },
+    { name: "Home & Kitchen", description: "Furniture and kitchen appliances" },
+    { name: "Sports", description: "Sports equipment and gear" },
     { name: "Toys", description: "Toys for children" },
-    { name: "Beauty", description: "Beauty and personal care products" },
-    { name: "Food & Beverages", description: "Grocery and beverages" },
+    { name: "Books", description: "Books of all genres" },
+    { name: "Beauty", description: "Beauty products and skincare" },
+    { name: "Furniture", description: "Furniture for home and office" },
+    { name: "Food & Beverage", description: "Groceries and beverages" },
+    { name: "Automotive", description: "Automobile parts and accessories" },
+    { name: "Health", description: "Health and wellness products" },
+    { name: "Gaming", description: "Gaming consoles and accessories" },
+    { name: "Music", description: "Musical instruments and accessories" },
+    { name: "Photography", description: "Cameras and photography equipment" },
+    { name: "Office Supplies", description: "Office equipment and supplies" },
+    { name: "Jewelry", description: "Gold, silver, and precious jewelry" },
+    { name: "Pet Supplies", description: "Products for pets" },
+    { name: "Garden", description: "Gardening tools and accessories" },
+    { name: "Travel", description: "Travel accessories and luggage" },
+    { name: "Gift Cards", description: "Gift cards for various brands" },
   ];
 
   return (
-    <div className="sidebar bg-gray-800 text-white p-4 w-64 sm:w-48 shadow-lg rounded-lg transform transition-all hover:scale-105">
+    <div
+      className={`sidebar bg-gray-800 text-white p-4 shadow-lg rounded-lg fixed left-0 top-0 h-full z-10 transform transition-all duration-300 ease-in-out ${
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      }`} // Tailwind class for sliding effect
+    >
       <h2 className="text-2xl font-semibold mb-6 text-center">Categories</h2>
-      
+
+      {/* Close button */}
+      <button
+        onClick={toggleSidebar}
+        className="text-white mb-4 p-2 rounded bg-blue-500 hover:bg-blue-400 transition absolute top-4 right-4 sm:hidden"
+      >
+        Close
+      </button>
+
       <ul>
         {categories.map((category) => (
           <li key={category.name} className="mb-4">
             <Link
-              to={`/shop/${category.name.toLowerCase()}`}
-              onClick={() => onCategorySelect(category.name)}
+              to={`/shop/${category.name
+                .toLowerCase()
+                .replace(/ & /g, "-")
+                .replace(/ /g, "-")}`}
+              onClick={() => {
+                onCategorySelect(category.name); // Set selected category
+                toggleSidebar(); // Close sidebar
+              }}
               className="block text-lg font-medium hover:text-blue-400 transition duration-300"
             >
               {category.name}

@@ -12,6 +12,14 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+// Define Enum Role
+enum Role {
+  ADMIN
+  CUSTOMER
+  VENDOR
+}
+
+// Define Product model
 model Product {
   id          Int          @id @default(autoincrement())
   name        String
@@ -25,6 +33,7 @@ model Product {
   categoryId  Int?         // Optional foreign key for Category
 }
 
+// Define Order model
 model Order {
   id              Int          @id @default(autoincrement())
   shippingAddress String
@@ -36,6 +45,7 @@ model Order {
   customerId      Int
 }
 
+// Define OrderItem model
 model OrderItem {
   id        Int      @id @default(autoincrement())
   quantity  Int
@@ -46,12 +56,18 @@ model OrderItem {
 }
 
 model User {
-  id       String  @id @default(cuid())
-  email    String  @unique
-  password String
-  name     String
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(CUSTOMER) 
+  status    String   @default("active")  // Add this line for status
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+
+// Define Customer model
 model Customer {
   id           Int       @id @default(autoincrement())
   name         String
@@ -64,6 +80,7 @@ model Customer {
   updatedAt    DateTime  @updatedAt
 }
 
+// Define Category model
 model Category {
   id          Int        @id @default(autoincrement())
   name        String     @unique

@@ -3,16 +3,16 @@ body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  height: 100%; /* Allow body to extend beyond the viewport */
-  overflow: auto; /* Allow scrolling */
-  background-color: #203652; /* Fallback background color in case 3D background isn't visible */
+  height: 100%; /* Full viewport height */
+  overflow: auto; /* Enable scrolling */
+  background-color: #203652; /* Fallback background color */
 }
 
-/* Main container */
+/* Main container (flex layout for dashboards) */
 .main-container {
-  display: flex; /* Flexbox layout to allow the sidebar and content to sit side-by-side */
+  display: flex; /* Side-by-side layout for sidebar and content */
   position: relative;
-  height: 100%; /* Full height */
+  height: 100%;
   width: 100%;
 }
 
@@ -23,10 +23,10 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(120deg, #4f76a1, #203652); /* Replace image with a gradient background */
+  background: linear-gradient(120deg, #4f76a1, #203652); /* Gradient background */
   transform-style: preserve-3d;
   animation: rotate 60s infinite linear;
-  z-index: -1; /* Place it behind other content */
+  z-index: -1; /* Behind other content */
 }
 
 @keyframes rotate {
@@ -34,23 +34,45 @@ body {
     transform: rotateY(0deg);
   }
   100% {
-    transform: rotateY(360deg); /* Rotate background to create the 3D effect */
+    transform: rotateY(360deg);
   }
+}
+
+/* Header styles */
+.header {
+  background-color: #2c3e50;
+  color: white;
+  padding: 15px 30px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+  font-size: 1.8rem;
+  margin: 0;
+  font-weight: bold;
 }
 
 /* Sidebar styles */
 .sidebar {
-  width: 250px; /* Sidebar width */
-  background-color: #2c3e50; /* Sidebar background */
+  width: 250px;
+  background-color: #2c3e50;
   color: white;
   padding: 20px;
-  position: fixed; /* Keep the sidebar fixed */
+  position: fixed;
   top: 0;
   left: 0;
   height: 100%;
-  overflow-y: auto; /* Allow scrolling inside sidebar if necessary */
-  z-index: 1; /* Sidebar sits above background */
-  box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1); /* Add subtle shadow to the sidebar */
+  overflow-y: auto;
+  z-index: 1;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Sidebar open state */
+.sidebar.open {
+  transform: translateX(0);
 }
 
 .sidebar h2 {
@@ -85,28 +107,39 @@ body {
   margin-top: 5px;
 }
 
-/* Content section styles */
+/* Content section */
 .content {
-  margin-left: 270px; /* Ensure content doesn't overlap the sidebar */
+  margin-left: 270px;
   padding: 20px;
   background-color: #ecf0f1;
   height: 100%;
-  overflow-y: auto; /* Allow scrolling of content */
+  overflow-y: auto;
 }
 
-/* Content text styles */
-h1,
-p {
-  color: rgb(231, 230, 230);
-  text-shadow: 1px 1px 5px rgba(82, 81, 81, 0.5);
+/* Card styles for both user and admin dashboards */
+.card {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
-/* Specific Register Page styles */
+.card h2 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+
+.card p {
+  color: #555;
+}
+
+/* Register Page */
 .register-page {
   position: relative;
-  height: 100%; /* Ensure the page takes up full height */
+  height: 100%;
   padding: 2rem;
-  overflow-y: auto; /* Allow scrolling of the page */
+  overflow-y: auto;
 }
 
 .register-page .background-3d {
@@ -115,72 +148,112 @@ p {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(120deg, #4f76a1, #203652); /* Same gradient background for consistency */
+  background: linear-gradient(120deg, #4f76a1, #203652);
   transform-style: preserve-3d;
   animation: rotate 20s infinite linear;
-  z-index: -1; /* Background behind content */
+  z-index: -1;
 }
 
 .register-page .content {
   position: relative;
-  z-index: 2; /* Ensure content stays above the 3D background */
+  z-index: 2;
   padding: 2rem;
-  background: rgba(0, 0, 0, 0.5); /* Add a slight background overlay for better contrast */
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Register form and input styles */
-.register-form {
+/* New Collection Item Styles */
+.new-collection-item {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 200px;
+  height: 300px;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  transform: perspective(500px) rotateY(0deg); /* 3D rotation for items */
+  transition: transform 0.3s ease;
 }
 
-.input-group {
-  display: flex;
-  flex-direction: column;
+.new-collection-item:hover {
+  transform: rotateY(15deg); /* Hover effect for rotation */
 }
 
-.input-group label {
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-  color: #355168;
+.new-collection-item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
-.input-group input {
-  padding: 0.8rem;
-  border-radius: 5px;
-  border: none;
-  outline: none;
-  font-size: 1rem;
-}
-
-/* Submit button styles */
-.submit-btn {
-  padding: 0.8rem;
-  background-color: #7295bb;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+.new-collection-item h3 {
   font-size: 1.1rem;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 10px;
 }
 
-.submit-btn:hover {
-  background-color: #40709c;
+.new-collection-item p {
+  color: #333;
+  font-size: 1rem;
+  text-align: center;
+  margin-top: 5px;
 }
 
-/* Responsive sidebar for mobile screens */
+/* Responsive Sidebar for Mobile */
 @media screen and (max-width: 768px) {
   .sidebar {
-    width: 100%; /* Sidebar should take up full width */
+    width: 100%;
     height: auto;
-    position: relative; /* Sidebar should be inside content area on mobile */
+    position: relative;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
   }
 
   .content {
     margin-left: 0;
     padding: 10px;
   }
+
+  .sidebar-btn {
+    display: block;
+    background-color: #2c3e50;
+    color: rgb(214, 209, 209);
+    font-size: 1.2rem;
+    padding: 10px;
+    cursor: pointer;
+  }
+}
+
+/* Navbar responsiveness */
+.navbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .navbar-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .navbar-links {
+    display: none;
+  }
+
+  .sidebar-btn {
+    display: block;
+  }
+}
+
+/* Accessibility: Focus state for interactive elements */
+.category-link:focus,
+.submit-btn:focus {
+  outline: 3px solid #3498db; /* Highlight focused buttons */
 }

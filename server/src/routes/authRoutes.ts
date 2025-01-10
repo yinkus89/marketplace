@@ -1,18 +1,13 @@
 // src/routes/authRoutes.ts
-import express, { Request, Response } from 'express'; // Make sure Request and Response are imported
-import { registerUser, loginUser } from '../controllers/authController';
+import { Router } from 'express';
+import { register, login } from '../controllers/authController';  // Import the controller functions
 
-const router = express.Router();
+const router = Router();
 
-// Register a new user
-router.post('/register', async (req: Request, res: Response) => {
-  await registerUser(req, res);
-});
+// Route for user registration
+router.post('/register', register);
 
-// Login a user
-router.post('/login', async (req: Request, res: Response) => {
-  await loginUser(req, res);
-});
+// Route for user login
+router.post('/login', login);
 
 export default router;
-
