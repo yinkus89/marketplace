@@ -62,62 +62,68 @@ router.post(
     }
   }
 );
-
 // Login Route
 router.post('/login', async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-
-  // Check for missing fields
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
-  }
-
-  try {
-    // Find the user by email
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid email or password' });
+    const { email, password } = req.body;
+  
+    // Check for missing fields
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
     }
-
-    // Compare password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid email or password' });
+  
+    try {
+      // Find the user by email
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user) {
+        console.log('User not found:', email);  // Log if user is not found
+        return res.status(400).json({ message: 'Invalid email or password' });
+      }
+  
+      console.log('User found:', user);  // Log the found user details
+  
+      // Compare password
+      const isMatch = await bcrypt.compare(password, user.password);
+      console.log('Password match:', isMatch);  // Log the result of the password comparison
+  
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid email or password' });
+      }
+  
+      // Generate JWT token
+      const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+      const token = jwt.sign(
+        { userId: user.id, email: user.email, role: user.role },
+        jwtSecret,
+        { expiresIn: '1h' }
+      );
+  
+      // Send success response with the token
+      res.status(200).json({
+        success: true,
+        message: 'Login successful',
+        data: { token },
+      });
+    } catch (error) {
+      console.error('Error in login route:', error);
+      res.status(500).json({ message: 'Error logging in' });
     }
-
-    // Generate JWT token
-    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
-      jwtSecret,
-      { expiresIn: '1h' }
-    );
-
-    // Send success response with the token
-    res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      data: { token },
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error logging in' });
-  }
-});
-
-// Example of a protected route that only ADMIN can access
-router.get('/admin-dashboard', protectRoute, roleGuard(['ADMIN']), (req: Request, res: Response) => {
-  res.status(200).json({ message: 'Welcome to the Admin Dashboard!' });
-});
-
-// Example of a protected route that both VENDORS and ADMIN can access
-router.get('/vendor-dashboard', protectRoute, roleGuard(['ADMIN', 'VENDOR']), (req: Request, res: Response) => {
-  res.status(200).json({ message: 'Welcome to the Vendor Dashboard!' });
-});
-
-// Example of a protected route accessible by all users (no roleGuard)
-router.get('/user-profile', protectRoute, (req: Request, res: Response) => {
-  res.status(200).json({ message: 'Welcome to your profile!', user: req.user });
-});
-
-export default router;
+  });
+  
+  
+  // Example of a protected route that only ADMIN can access
+  router.get('/admin-dashboard', protectRoute, roleGuard(['ADMIN']), (req: Request, res: Response) => {
+    res.status(200).json({ message: 'Welcome to the Admin Dashboard!' });
+  });
+  
+  // Example of a protected route that both VENDORS and ADMIN can access
+  router.get('/vendor-dashboard', protectRoute, roleGuard(['ADMIN', 'VENDOR']), (req: Request, res: Response) => {
+    res.status(200).json({ message: 'Welcome to the Vendor Dashboard!' });
+  });
+  
+  // Example of a protected route accessible by all users (no roleGuard)
+  router.get('/user-profile', protectRoute, (req: Request, res: Response) => {
+    res.status(200).json({ message: 'Welcome to your profile!', user: req.user });
+  });
+  
+  export default router;
+  

@@ -1,54 +1,50 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import jwt_decode from "jwt-decode";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null); // Added state for success message
-  const [isLoading, setIsLoading] = useState(false); // Added loading state
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Set loading to true while waiting for the request
-
+    setIsLoading(true);
+    setError(null);
+  
     try {
-      // Send login request to the backend
-      const response = await axios.post("http://localhost:4001/api/auth/login", {
-        email,
-        password,
-      });
-
-      const { token, role } = response.data;
-
-      // Store the token and role in localStorage
+      const response = await axios.post("http://localhost:4001/api/auth/login", { email, password });
+  
+      const { token } = response.data.data;
       localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-
-      // Set success message
+  
+      const decodedToken = jwt_decode(token);
       setSuccessMessage("Login successful! Redirecting...");
-
-      // Redirect based on user role immediately after success
+  
       setTimeout(() => {
-        if (role === "admin") {
+        if (decodedToken.role === "ADMIN") {
           navigate("/admin/dashboard");
-        } else if (role === "customer") {
+        } else if (decodedToken.role === "CUSTOMER") {
           navigate("/customer/dashboard");
-        } else if (role === "vendor") {
+        } else if (decodedToken.role === "VENDOR") {
           navigate("/vendor/dashboard");
         }
-      }, 1000); // Reduce the delay to make the redirect faster
-
+      }, 1000);
+  
     } catch (error) {
-      setError("Invalid credentials or server error.");
-      setSuccessMessage(null); // Clear success message on error
-      console.error(error);
+      setError(error.response ? error.response.data.message : "Login failed. Please try again.");
+      setSuccessMessage(null);
     } finally {
-      setIsLoading(false); // Set loading to false when the request is finished
+      setIsLoading(false);
     }
   };
+  
+
+  
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -99,7 +95,7 @@ const Login = () => {
           <button
             type="submit"
             className="w-full py-2 bg-blue-600 text-white text-lg font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isLoading} // Disable button while loading
+            disabled={isLoading}
           >
             {isLoading ? "Logging in..." : "Login"}
           </button>
