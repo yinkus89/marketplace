@@ -1,129 +1,116 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const LoginPage = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null); // Added state for success message
+  const [isLoading, setIsLoading] = useState(false); // Added loading state
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedRole = localStorage.getItem('role');
-    if (storedToken && storedRole) {
-      const route =
-        storedRole === 'ADMIN'
-          ? '/admin/dashboard'
-          : storedRole === 'VENDOR'
-          ? '/vendor/dashboard'
-          : '/customer/dashboard';
-      navigate(route);
-    }
-  }, [navigate]);
-
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(''); // Clear previous errors
-
-    // Simple input validation
-    if (!email || !password) {
-      setError('Email and password are required');
-      setIsLoading(false);
-      return;
-    }
+    setIsLoading(true); // Set loading to true while waiting for the request
 
     try {
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4001';
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
+      // Send login request to the backend
+      const response = await axios.post("http://localhost:4001/api/auth/login", {
         email,
         password,
       });
 
-      const { role, token } = response.data;
+      const { token, role } = response.data;
 
-      // Save the token and role in localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('role', role);
+      // Store the token and role in localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
 
-      // Optional callback for parent component
-      onLogin(token);
+      // Set success message
+      setSuccessMessage("Login successful! Redirecting...");
 
-      // Navigate to the respective dashboard
-      switch (role) {
-        case 'ADMIN':
-          navigate('/admin/dashboard');
-          break;
-        case 'VENDOR':
-          navigate('/vendor/dashboard');
-          break;
-        case 'CUSTOMER':
-        default:
-          navigate('/customer/dashboard');
-          break;
-      }
+      // Redirect based on user role immediately after success
+      setTimeout(() => {
+        if (role === "admin") {
+          navigate("/admin/dashboard");
+        } else if (role === "customer") {
+          navigate("/customer/dashboard");
+        } else if (role === "vendor") {
+          navigate("/vendor/dashboard");
+        }
+      }, 1000); // Reduce the delay to make the redirect faster
+
     } catch (error) {
-      if (!error.response) {
-        setError('Network error, please try again later');
-      } else {
-        setError(error.response?.data?.message || 'Invalid credentials, please try again!');
-      }
+      setError("Invalid credentials or server error.");
+      setSuccessMessage(null); // Clear success message on error
+      console.error(error);
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Set loading to false when the request is finished
     }
   };
 
   return (
-    <div className="login-page">
-      <div className="background-3d"></div>
-      <div className="content">
-        <h2 className="text-2xl font-semibold text-center mb-6">Login</h2>
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-4">Login</h2>
 
-        <form onSubmit={handleLogin} className="login-form">
-          <div className="input-group">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+        {error && (
+          <div className="bg-red-200 text-red-800 p-3 mb-4 rounded">
+            {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="bg-green-200 text-green-800 p-3 mb-4 rounded">
+            {successMessage}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-lg font-medium text-gray-700 mb-2">
               Email
             </label>
             <input
               type="email"
               id="email"
-              placeholder="Your Email"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
               required
             />
           </div>
 
-          <div className="input-group">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          <div className="mb-6">
+            <label htmlFor="password" className="block text-lg font-medium text-gray-700 mb-2">
               Password
             </label>
             <input
               type="password"
               id="password"
-              placeholder="Your Password"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
               required
             />
           </div>
 
           <button
             type="submit"
-            className={`w-full py-2 rounded-md transition duration-200 ${isLoading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
-            disabled={isLoading}
+            className="w-full py-2 bg-blue-600 text-white text-lg font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isLoading} // Disable button while loading
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? "Logging in..." : "Login"}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <p className="text-gray-500">Don't have an account? <a href="/register" className="text-blue-600 hover:underline">Sign Up</a></p>
+        </div>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default Login;

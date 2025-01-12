@@ -117,37 +117,40 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="admin-dashboard">
+    <div className="flex h-screen bg-gray-100">
       {/* Sidebar Navigation */}
-      <div className="sidebar open">
-        <h2>Admin Dashboard</h2>
-        <ul className="category-list">
+      <div className="w-64 bg-blue-600 text-white p-4 flex flex-col">
+        <h2 className="text-xl font-semibold mb-6">Admin Dashboard</h2>
+        <ul className="space-y-4">
           <li
-            className={activeTab === "products" ? "active" : ""}
+            className={`cursor-pointer ${activeTab === "products" ? "text-blue-200" : "hover:text-blue-200"}`}
             onClick={() => setActiveTab("products")}
           >
             Products
           </li>
           <li
-            className={activeTab === "categories" ? "active" : ""}
+            className={`cursor-pointer ${activeTab === "categories" ? "text-blue-200" : "hover:text-blue-200"}`}
             onClick={() => setActiveTab("categories")}
           >
             Categories
           </li>
           <li
-            className={activeTab === "users" ? "active" : ""}
+            className={`cursor-pointer ${activeTab === "users" ? "text-blue-200" : "hover:text-blue-200"}`}
             onClick={() => setActiveTab("users")}
           >
             Users
           </li>
           <li
-            className={activeTab === "orders" ? "active" : ""}
+            className={`cursor-pointer ${activeTab === "orders" ? "text-blue-200" : "hover:text-blue-200"}`}
             onClick={() => setActiveTab("orders")}
           >
             Orders
           </li>
           <li>
-            <button onClick={handleLogout} className="logout-btn">
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 p-2 rounded-md w-full mt-6"
+            >
               Logout
             </button>
           </li>
@@ -155,8 +158,8 @@ const AdminDashboard = () => {
       </div>
 
       {/* Content Section */}
-      <div className="content">
-        <h1>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h1>
+      <div className="flex-1 p-6 overflow-y-auto">
+        <h1 className="text-2xl font-semibold mb-6">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h1>
         {renderContent()}
       </div>
     </div>

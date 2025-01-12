@@ -1,24 +1,32 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();  // Initialize PrismaClient
 
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    const { customerName, customerEmail, shippingAddress, totalAmount, items } = req.body;
+    const { customerName, customerEmail, shippingAddress, totalAmount, items, password } = req.body;
 
     // Step 1: Check if customer exists, if not create one
     const customer = await prisma.customer.upsert({
       where: { email: customerEmail },
       update: {},  // Don't update anything if the customer exists
       create: {
-        name: customerName,
+        name: customerName,  // Include the name here
         email: customerEmail,
-        passwordHash: 'placeholderPasswordHash',  // Placeholder for passwordHash
-        // Optionally, include other customer details here (phone, address, etc.)
+        passwordHash: password ? await bcrypt.hash(password, 10) : 'placeholderPasswordHash',
+        user: {  // Ensure the 'user' field is included
+          create: {
+            name: customerName,  // Ensure name is passed to the user
+            email: customerEmail,
+            password: password ? await bcrypt.hash(password, 10) : 'placeholderPasswordHash',
+          },
+        },
       },
     });
+    
 
     // Step 2: Create the order and link to the customer
     const order = await prisma.order.create({

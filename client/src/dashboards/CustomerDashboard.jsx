@@ -48,44 +48,55 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="dashboard">
-      <div className="sidebar">
-        <h2>Customer Dashboard</h2>
-        <Link to="/user/orders">Orders</Link>
-        <Link to="/user/settings">Settings</Link>
-        <button onClick={handleLogout} className="logout-btn">Logout</button>
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+      <div className="w-64 bg-blue-600 text-white p-6 flex flex-col">
+        <h2 className="text-2xl font-semibold mb-6">Customer Dashboard</h2>
+        <Link to="/user/orders" className="mb-4 text-lg hover:text-blue-200">Orders</Link>
+        <Link to="/user/settings" className="mb-4 text-lg hover:text-blue-200">Settings</Link>
+        <button 
+          onClick={handleLogout} 
+          className="mt-auto bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md w-full"
+        >
+          Logout
+        </button>
       </div>
-      <div className="dashboard-content">
-        <div className="dashboard-header">
-          <h1>Welcome to Your Dashboard</h1>
+
+      {/* Content Section */}
+      <div className="flex-1 p-6 overflow-y-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-semibold">Welcome to Your Dashboard</h1>
         </div>
 
         {/* Orders Section */}
-        <div className="card">
-          <div className="card-title">Recent Orders</div>
-          <div className="card-content">
-            {loading ? (
-              <p>Loading...</p>
-            ) : error ? (
-              <p>{error}</p>
-            ) : orders.length === 0 ? (
-              <p>No orders found.</p>
-            ) : (
-              <ul>
-                {orders.map((order) => (
-                  <li key={order.id}>
-                    <p><strong>Order #{order.id}</strong></p>
-                    <p>{order.shippingAddress}</p>
-                    <p>{order.totalAmount} USD</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <div className="card-footer">
-            {/* Link to the full orders page */}
-            <Link to="/user/orders" className="view-all-btn">View All Orders</Link>
-          </div>
+        <div className="bg-white p-6 rounded-md shadow-lg">
+          <div className="text-xl font-semibold mb-4">Recent Orders</div>
+          
+          {/* Loading, Error, and Data Display */}
+          {loading ? (
+            <div className="text-center text-gray-500">Loading...</div>
+          ) : error ? (
+            <div className="text-center text-red-600">{error}</div>
+          ) : orders.length === 0 ? (
+            <div className="text-center text-gray-500">No orders found.</div>
+          ) : (
+            <ul>
+              {orders.map((order) => (
+                <li key={order.id} className="mb-4 border-b pb-4">
+                  <p className="text-lg font-semibold">Order #{order.id}</p>
+                  <p className="text-gray-600">{order.shippingAddress}</p>
+                  <p className="font-bold">{order.totalAmount} USD</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* View All Orders Button */}
+        <div className="mt-4 text-center">
+          <Link to="/user/orders" className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600">
+            View All Orders
+          </Link>
         </div>
       </div>
     </div>

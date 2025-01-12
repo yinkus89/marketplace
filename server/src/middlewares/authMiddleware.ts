@@ -12,17 +12,18 @@ declare global {
 }
 
 export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.header('Authorization')?.split(' ')[1];  // Extract token from 'Authorization' header
-  if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
+  const token = req.header("Authorization")?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.status(401).json({ error: "Access denied, no token provided" });
+  }
 
   try {
-    // Verify the token and decode it to your defined JWT payload type
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JWTPayload;
-    req.user = decoded;  // Attach the decoded JWT payload to the request object (note the lowercase 'user')
-
-    next();  // Proceed to the next middleware or route handler
-  } catch (err) {
-    res.status(401).json({ message: 'Invalid token' });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key") as { userId: number; role: string; email: string };
+    req.user = decoded; // Attach the decoded user to the request object
+    next(); // Continue to the next middleware or route handler
+  } catch (error) {
+    res.status(400).json({ error: "Invalid or expired token" });
   }
 };
 

@@ -1,22 +1,16 @@
-import { useNavigate } from 'react-router-dom';
+// src/routes/PrivateRoute.jsx
 
-const ProtectedRoute = ({ children }) => {
-  const navigate = useNavigate();
+import { Route, Redirect } from "react-router-dom";
+
+const PrivateRoute = ({ roleRequired, children }) => {
   const token = localStorage.getItem("token");
-  
-  if (!token) {
-    // If no token, redirect to login page
-    navigate("/admin/login");
-    return null; // Don't render the protected component
+  const role = localStorage.getItem("role");
+
+  if (!token || role !== roleRequired) {
+    return <Redirect to="/login" />;
   }
 
-  // If token exists, render the protected component
   return children;
 };
 
-// Wrap the AdminDashboard route in ProtectedRoute
-<Route path="/admin/dashboard" element={
-  <ProtectedRoute>
-    <AdminDashboard />
-  </ProtectedRoute>
-} />
+export default PrivateRoute;

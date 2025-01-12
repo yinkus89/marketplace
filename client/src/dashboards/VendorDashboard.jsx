@@ -6,10 +6,12 @@ import OrderManagement from './OrderManagement';
 import VendorProfile from './VendorProfile';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // For API requests
+import Spinner from '../components/spinner';  // Import a spinner component for loading state
 
 const VendorDashboard = () => {
   const [activeComponent, setActiveComponent] = useState('inventory'); // Default view
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Authentication state
+  const [loading, setLoading] = useState(true);  // Loading state for authentication check
   const navigate = useNavigate();
 
   // Check authentication status on mount
@@ -18,13 +20,17 @@ const VendorDashboard = () => {
     if (!token) {
       navigate('/login'); // Redirect to login page if no token found
     } else {
-      // Optional: Verify token validity via API (if needed)
+      // Optional: Verify token validity via API
       axios.get('http://localhost:4001/api/verify-token', {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then(() => setIsAuthenticated(true))
+      .then(() => {
+        setIsAuthenticated(true);
+        setLoading(false);  // Set loading to false once authentication is successful
+      })
       .catch(() => {
         setIsAuthenticated(false);
+        setLoading(false);  // Set loading to false after failed authentication
         localStorage.removeItem('token'); // Remove invalid token
         navigate('/login'); // Redirect to login
       });
@@ -61,7 +67,13 @@ const VendorDashboard = () => {
 
       {/* Main Content */}
       <div className="flex-1 p-6 bg-gray-100">
-        {isAuthenticated ? renderContent() : <p>Loading...</p>}
+        {loading ? (
+          <Spinner />  // Show a loading spinner while authentication is being checked
+        ) : isAuthenticated ? (
+          renderContent()  // Show content if authenticated
+        ) : (
+          <p className="text-center text-red-500">You are not authenticated. Please login.</p>  // Error message if not authenticated
+        )}
       </div>
     </div>
   );
