@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAllCategories = void 0;
-const prismaClient_1 = __importDefault(require("../utils/prismaClient")); // Assuming you are using Prisma
+const prismaClient_1 = __importDefault(require("../prisma/prismaClient")); // Assuming you are using Prisma
 const getAllCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const categories = yield prismaClient_1.default.category.findMany();
@@ -21,7 +21,7 @@ const getAllCategories = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error fetching categories' });
+        res.status(500).json({ message: "Error fetching categories" });
     }
 });
 exports.getAllCategories = getAllCategories;

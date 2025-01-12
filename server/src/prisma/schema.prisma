@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  name        String      @db.VarChar(100)
+  description String      @db.VarChar(255)
+  price       Float
+  imageUrl    String      @db.VarChar(255)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+  categoryId  Int?
+  orderItems  OrderItem[] // Relation defined here
+  category    Category?   @relation(fields: [categoryId], references: [id])
+
+  @@index([name])
+  @@index([categoryId, price], map: "idx_category_price")
+  @@index([categoryId], map: "idx_categoryid")
+  @@index([createdAt], map: "idx_createdat")
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique @db.VarChar(100)
+  description String?   @db.VarChar(255)
+  deletedAt   DateTime?
+  products    Product[] // Relation defined here
+
+  @@index([name])
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  customerName    String
+  customerEmail   String
+  shippingAddress String
+  totalAmount     Float
+  items           OrderItem[] @relation("OrderItems") // Relation defined here
+  customer        Customer    @relation("CustomerOrders", fields: [customerId], references: [id]) // Relation defined here
+  customerId      Int
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  productId Int
+  orderId   Int
+  order     Order   @relation("OrderItems", fields: [orderId], references: [id]) // Relation defined here
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([productId, orderId])
+}
+
+model Customer {
+  id           Int       @id @default(autoincrement())
+  name         String    @db.VarChar(100)
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @db.VarChar(255)
+  phoneNumber  String?   @db.VarChar(20)
+  address      String?   @db.VarChar(255)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  userId       Int       @unique
+  user         User      @relation("UserCustomer", fields: [userId], references: [id])
+  orders       Order[]   @relation("CustomerOrders")
+
+  @@index([email])
+  @@index([phoneNumber])
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  name      String     @db.VarChar(100)
+  email     String     @unique @db.VarChar(255)
+  password  String     @db.VarChar(255)
+  role      Role       @default(CUSTOMER)
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime?
+
+  customer   Customer? @relation("UserCustomer") // Reverse relation to Customer
+  customerId Int? // Prisma will infer this from the relation
+
+  @@index([email])
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+  VENDOR
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}

@@ -1,24 +1,38 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient();  // Initialize PrismaClient
 
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
   try {
     const { customerName, customerEmail, shippingAddress, totalAmount, items } = req.body;
 
+    // Step 1: Check if customer exists, if not create one
+    const customer = await prisma.customer.upsert({
+      where: { email: customerEmail },
+      update: {},  // Don't update anything if the customer exists
+      create: {
+        name: customerName,
+        email: customerEmail,
+        passwordHash: 'placeholderPasswordHash',  // Placeholder for passwordHash
+        // Optionally, include other customer details here (phone, address, etc.)
+      },
+    });
+
+    // Step 2: Create the order and link to the customer
     const order = await prisma.order.create({
       data: {
         customerName,
         customerEmail,
         shippingAddress,
         totalAmount,
+        customer: { connect: { id: customer.id } },  // Connect the order to the customer
         items: {
           create: items.map((item: any) => ({
             quantity: item.quantity,
             product: {
-              connect: { id: item.productId },
+              connect: { id: item.productId },  // Connect products via productId
             },
           })),
         },
@@ -26,13 +40,14 @@ export const createOrder = async (req: Request, res: Response) => {
       include: {
         items: {
           include: {
-            product: true,
+            product: true,  // Include product data in the response
           },
         },
+        customer: true,  // Include customer data in the response
       },
     });
 
-    res.status(201).json(order);
+    res.status(201).json(order);  // Respond with the created order
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to create order' });
@@ -49,10 +64,11 @@ export const getAllOrders = async (req: Request, res: Response) => {
             product: true,
           },
         },
+        customer: true,  // Include customer data
       },
     });
 
-    res.status(200).json(orders);
+    res.status(200).json(orders);  // Respond with all orders
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch orders' });
@@ -72,6 +88,7 @@ export const getOrderById = async (req: Request, res: Response) => {
             product: true,
           },
         },
+        customer: true,  // Include customer info
       },
     });
 
@@ -79,7 +96,7 @@ export const getOrderById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    res.status(200).json(order);
+    res.status(200).json(order);  // Respond with the order
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch order' });
@@ -100,9 +117,17 @@ export const updateOrder = async (req: Request, res: Response) => {
         shippingAddress,
         totalAmount,
       },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        customer: true,  // Include customer info in the response
+      },
     });
 
-    res.status(200).json(updatedOrder);
+    res.status(200).json(updatedOrder);  // Respond with the updated order
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to update order' });
@@ -118,7 +143,7 @@ export const deleteOrder = async (req: Request, res: Response) => {
       where: { id: parseInt(id) },
     });
 
-    res.status(204).send();
+    res.status(204).send();  // Respond with no content after deletion
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to delete order' });

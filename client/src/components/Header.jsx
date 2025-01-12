@@ -1,4 +1,3 @@
-// src/components/Header.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -16,15 +15,16 @@ const Header = () => {
           <Link to="/about" className="hover:text-gray-300">About</Link>
           <Link to="/contact" className="hover:text-gray-300">Contact</Link>
           <Link to="/register" className="hover:text-gray-300">Signup</Link>
+          <Link to="/logout" className="hover:text-gray-300">Logout</Link>
         </nav>
 
-        {/* Cart Icon (Optional) */}
-        <div>
-        <Link to="/cart" className="flex items-center space-x-2 hover:text-gray-300">
+        {/* Cart Icon (Removed from here) */}
+        {/* <div>
+          <Link to="/cart" className="flex items-center space-x-2 hover:text-gray-300">
             <span className="material-icons"></span>
             <span>Cart</span>
           </Link>
-        </div>
+        </div> */}
       </div>
     </header>
   );

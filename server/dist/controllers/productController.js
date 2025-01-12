@@ -8,34 +8,51 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createProduct = exports.getAllProducts = void 0;
-const prismaClient_1 = __importDefault(require("../utils/prismaClient"));
-// Get all products
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
+// Get all products (excluding soft-deleted products)
 const getAllProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const products = yield prismaClient_1.default.product.findMany();
-        res.json(products);
+        // Fetch products excluding soft-deleted ones (deletedAt is NULL)
+        const products = yield prisma.product.findMany({
+            where: {
+                deletedAt: null, // Filter out soft-deleted products
+            },
+        });
+        res.status(200).json(products); // Respond with the products
     }
     catch (error) {
-        res.status(500).json({ message: "Error fetching products" });
+        console.error(error); // Log the error
+        res.status(500).json({ message: 'Error fetching products' }); // Error response
     }
 });
 exports.getAllProducts = getAllProducts;
 // Create a new product
 const createProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, description, price, imageUrl } = req.body;
-        const product = yield prismaClient_1.default.product.create({
-            data: { name, description, price, imageUrl },
+        const { name, description, price, imageUrl, categoryId } = req.body;
+        // Validate required fields
+        if (!name || !description || !price || !imageUrl) {
+            res.status(400).json({ message: 'Missing required fields' });
+            return;
+        }
+        // Create a new product
+        const newProduct = yield prisma.product.create({
+            data: {
+                name,
+                description,
+                price,
+                imageUrl,
+                categoryId: categoryId || null, // Allow categoryId to be nullable
+            },
         });
-        res.status(201).json(product);
+        res.status(201).json(newProduct); // Respond with the newly created product
     }
     catch (error) {
-        res.status(500).json({ message: "Error creating product" });
+        console.error(error); // Log the error
+        res.status(500).json({ message: 'Error creating product' }); // Error response
     }
 });
 exports.createProduct = createProduct;

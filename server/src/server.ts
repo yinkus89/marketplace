@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes';
 import adminRoutes from './routes/adminRoutes';  // Import the admin routes
 import orderRoutes from './routes/orderRoutes';
 import categoryRoutes from './routes/categoryRoutes';
+import userRoutes from './routes/userRoute'; // Make sure the path matches your directory structure
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use("/api/orders", orderRoutes);
 
 // Authentication routes
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 
 
 // Admin routes (admin login, etc.)

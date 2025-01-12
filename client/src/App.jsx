@@ -1,37 +1,36 @@
 import React, { useState, useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import AdminLogin from "./pages/AdminLogin"; // Corrected import
+import AdminLogin from "./pages/AdminLogin";
 import Home from "./pages/Home";
 import Cart from "./pages/Cart";
 import ProductDetails from "./pages/ProductDetails";
-import AdminDashboard from "./components/AdminDashboard";
-import Dashboard from "./components/UserDashboard";
+import CustomerDashboard from "./dashboards/CustomerDashboard";
+import VendorDashboard from "./dashboards/VendorDashboard";
 import Shop from "./pages/Shop";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Checkout from "./pages/Checkout";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
-import NewCollection from "./components/NewCollection"; // Updated path
+import NewCollection from "./components/NewCollection";
 import Orders from "./pages/Orders";
 import OrderDetails from "./pages/OrderDetails";
 import MouseMoveEffect from "./components/MouseMoveEffect";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "./components/Sidebar"; // General Sidebar for Home
+import AdminSidebar from "./dashboards/AdminSidebar"; // Admin Sidebar in Dashboard
+import VendorSidebar from "./dashboards/VendorSidebar"; // Vendor Sidebar in Dashboard
+import CustomerSidebar from "./dashboards/CustomerSidebar"; // Customer Sidebar in Dashboard
+import AdminDashboard from "./dashboards/AdminDashboard";
+import LogoutPage from "./pages/LogoutPage";
+import { CartProvider } from "./context/CartContext";
+import DashboardLayout from './dashboards/DashboardLayout';
 import "./styles/globalStyles.css";
 
-// Assume this function retrieves user authentication data, such as role
 const getUserRole = () => {
-  // Example: check localStorage or a global state
-  const user = JSON.parse(localStorage.getItem("user")); // Check if user exists in localStorage
-  return user ? user.role : null; // Return role or null if no user
+  return localStorage.getItem("role");
 };
 
 const App = () => {
@@ -39,79 +38,76 @@ const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState(null);
 
-  // Function to handle category selection
-  const handleCategorySelect = (category) => {
-    setSelectedCategory(category);
-  };
-
-  // Toggle Sidebar visibility
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  // Set user role on app load
   useEffect(() => {
     const role = getUserRole();
     setUserRole(role);
-  }, []);
+  }, []);  // Empty dependency array to avoid re-renders on role change
 
   return (
     <Router>
       <div className="main-container">
-        {/* Background effect */}
         <div className="background-3d"></div>
 
-        {/* Sidebar Component */}
-        <Sidebar
-          onCategorySelect={handleCategorySelect}
-          isSidebarOpen={isSidebarOpen}
-          toggleSidebar={toggleSidebar}
-        />
+        {/* Sidebar for Home Pages (only if no role is set, for general visitors) */}
+        {!userRole && (
+          <Sidebar
+            onCategorySelect={setSelectedCategory}
+            isSidebarOpen={isSidebarOpen}
+            toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
+        )}
 
         <div className="content">
-          <MouseMoveEffect /> {/* Mouse effect */}
-          <Header /> {/* Header across all pages */}
-          {/* Navbar with Sidebar Toggle */}
-          <Navbar toggleSidebar={toggleSidebar} />
-          {/* Main Routes */}
+          <MouseMoveEffect />
+          <Header />
+          <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+
           <Routes>
+            {/* General routes (for all users, whether logged in or not) */}
             <Route path="/" element={<Home />} />
-            <Route
-              path="/shop"
-              element={<Shop selectedCategory={selectedCategory} />}
-            />
-            <Route
-              path="/shop/:category"
-              element={<Shop selectedCategory={selectedCategory} />}
-            />
+            <Route path="/shop" element={<Shop selectedCategory={selectedCategory} />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/about" element={<About />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/admin-login" element={<AdminLogin />} />{" "}
-            {/* Corrected the route to /admin-login */}
-            <Route path="/user/dashboard" element={<Dashboard />} />{" "}
-            {/* Dashboard for user */}
-            {/* Admin route with authentication check */}
-            <Route
-              path="/admin"
-              element={
-                userRole === "admin" ? (
-                  <AdminDashboard />
-                ) : (
-                  <Navigate to="/admin-login" /> // Redirect non-admin users to the admin login page
-                )
-              }
-            />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/orders/:id" element={<OrderDetails />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/new-collection" element={<NewCollection />} />{" "}
-            {/* NewCollection Route */}
+            <Route path="/new-collection" element={<NewCollection />} />
+
+            {/* Role-Based Routes */}
+            {userRole === "admin" && (
+              <>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/dashboard" element={<DashboardLayout sidebar={<AdminSidebar />} />} />
+              </>
+            )}
+
+            {userRole === "vendor" && (
+              <>
+                <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+                <Route path="/vendor/dashboard" element={<DashboardLayout sidebar={<VendorSidebar />} />} />
+              </>
+            )}
+
+            {userRole === "customer" && (
+              <>
+                <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+                <Route path="/customer/dashboard" element={<DashboardLayout sidebar={<CustomerSidebar />} />} />
+              </>
+            )}
+
+            {/* Logout Page */}
+            <Route path="/logout" element={<LogoutPage />} />
+
+            {/* Catch-all route for invalid paths */}
+            <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
-          <Footer /> {/* Footer across all pages */}
+
+          <Footer />
         </div>
       </div>
     </Router>

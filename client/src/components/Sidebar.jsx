@@ -28,8 +28,10 @@ const Sidebar = ({ onCategorySelect, isSidebarOpen, toggleSidebar }) => {
   return (
     <div
       className={`sidebar bg-gray-800 text-white p-4 shadow-lg rounded-lg fixed left-0 top-0 h-full z-10 transform transition-all duration-300 ease-in-out ${
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-      }`} // Tailwind class for sliding effect
+        isSidebarOpen
+          ? "translate-x-0" // Visible when the sidebar is open
+          : "lg:translate-x-0 -translate-x-full" // On desktop (lg:), sidebar is always visible; on mobile, it slides out
+      }`}
     >
       <h2 className="text-2xl font-semibold mb-6 text-center">Categories</h2>
 
@@ -51,7 +53,7 @@ const Sidebar = ({ onCategorySelect, isSidebarOpen, toggleSidebar }) => {
                 .replace(/ /g, "-")}`}
               onClick={() => {
                 onCategorySelect(category.name); // Set selected category
-                toggleSidebar(); // Close sidebar
+                toggleSidebar(); // Close sidebar after category selection
               }}
               className="block text-lg font-medium hover:text-blue-400 transition duration-300"
             >

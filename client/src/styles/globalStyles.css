@@ -257,3 +257,18 @@ body {
 .submit-btn:focus {
   outline: 3px solid #3498db; /* Highlight focused buttons */
 }
+
+/* Mobile Navigation Button (hamburger icon) */
+.hamburger-menu {
+  display: block;
+  color: white;
+  font-size: 2rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.hamburger-menu:focus {
+  outline: none;
+}
+

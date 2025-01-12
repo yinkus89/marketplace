@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios"; // Import axios
-import NewCollection from "./NewCollection";
-import { useNavigate } from "react-router-dom";
+import axios from "axios"; // Import axios for data fetching
+import { useNavigate } from "react-router-dom"; // For navigation
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("products");
@@ -10,28 +9,26 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false); // Loading state for fetching data
-  const [error, setError] = useState(null); // Error state
+  const [error, setError] = useState(null); // Error state for data fetching
   const navigate = useNavigate();
 
+  // UseEffect to handle authentication check
   useEffect(() => {
-    // Check if the user is authenticated by checking for a token
     const token = localStorage.getItem("token");
     if (!token) {
-      navigate("/admin/login"); // Redirect to login if not authenticated
+      navigate("/admin/login"); // Redirect to login page if not authenticated
     }
   }, [navigate]);
 
-  // Function to fetch data for each section
+  // Function to fetch data based on selected tab
   const fetchData = async (tab) => {
-    setLoading(true); // Set loading to true before making the API request
+    setLoading(true); // Set loading to true before making the request
     try {
       if (tab === "products") {
         const response = await axios.get("http://localhost:4001/api/products");
         setProducts(response.data);
       } else if (tab === "categories") {
-        const response = await axios.get(
-          "http://localhost:4001/api/categories"
-        );
+        const response = await axios.get("http://localhost:4001/api/categories");
         setCategories(response.data);
       } else if (tab === "users") {
         const response = await axios.get("http://localhost:4001/api/users");
@@ -108,11 +105,15 @@ const AdminDashboard = () => {
             </ul>
           </div>
         );
-      case "newCollection":
-        return <NewCollection />;
       default:
         return <div>Welcome to the Admin Dashboard!</div>;
     }
+  };
+
+  // Logout function
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Remove token from localStorage
+    navigate("/admin/login"); // Redirect to login page
   };
 
   return (
@@ -145,11 +146,10 @@ const AdminDashboard = () => {
           >
             Orders
           </li>
-          <li
-            className={activeTab === "newCollection" ? "active" : ""}
-            onClick={() => setActiveTab("newCollection")}
-          >
-            New Collection
+          <li>
+            <button onClick={handleLogout} className="logout-btn">
+              Logout
+            </button>
           </li>
         </ul>
       </div>

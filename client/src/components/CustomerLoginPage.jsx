@@ -1,57 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from 'axios'; // Ensure axios is installed and imported
 
-const LoginPage = ({ onLogin }) => {
+const CustomerLoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedRole = localStorage.getItem('role');
-    if (storedToken && storedRole) {
-      const route =
-        storedRole === 'ADMIN'
-          ? '/admin/dashboard'
-          : storedRole === 'VENDOR'
-          ? '/vendor/dashboard'
-          : '/customer/dashboard';
-      navigate(route);
-    }
-  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(''); // Clear previous errors
-
-    // Simple input validation
-    if (!email || !password) {
-      setError('Email and password are required');
-      setIsLoading(false);
-      return;
-    }
 
     try {
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4001';
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
+      // Replace with your actual API endpoint for customer login
+      const response = await axios.post('http://localhost:4001/api/auth/login', {
         email,
         password,
       });
 
+      // Extract role and token from the response
       const { role, token } = response.data;
 
-      // Save the token and role in localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('role', role);
+      // Handle successful login
+      console.log('Login successful:', response.data);
+      onLogin(token); // Pass the token to the parent component or store it
 
-      // Optional callback for parent component
-      onLogin(token);
-
-      // Navigate to the respective dashboard
+      // Redirect to the appropriate dashboard based on the role
       switch (role) {
         case 'ADMIN':
           navigate('/admin/dashboard');
@@ -61,25 +35,22 @@ const LoginPage = ({ onLogin }) => {
           break;
         case 'CUSTOMER':
         default:
-          navigate('/customer/dashboard');
+          navigate('/customer/dashboard'); // Redirect customer to their dashboard
           break;
       }
     } catch (error) {
-      if (!error.response) {
-        setError('Network error, please try again later');
-      } else {
-        setError(error.response?.data?.message || 'Invalid credentials, please try again!');
-      }
-    } finally {
-      setIsLoading(false);
+      // Handle login errors
+      setError(
+        error.response?.data?.message || 'Invalid credentials, please try again!'
+      );
     }
   };
 
   return (
     <div className="login-page">
-      <div className="background-3d"></div>
+      <div className="background-3d"></div> {/* Optional 3D background */}
       <div className="content">
-        <h2 className="text-2xl font-semibold text-center mb-6">Login</h2>
+        <h2 className="text-2xl font-semibold text-center mb-6">Customer Login</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
         <form onSubmit={handleLogin} className="login-form">
@@ -115,10 +86,9 @@ const LoginPage = ({ onLogin }) => {
 
           <button
             type="submit"
-            className={`w-full py-2 rounded-md transition duration-200 ${isLoading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
-            disabled={isLoading}
+            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-200"
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            Login
           </button>
         </form>
       </div>
@@ -126,4 +96,4 @@ const LoginPage = ({ onLogin }) => {
   );
 };
 
-export default LoginPage;
+export default CustomerLoginPage;

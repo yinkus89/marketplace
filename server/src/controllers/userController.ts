@@ -1,16 +1,15 @@
 import { Request, Response } from "express";
 import prisma from "../prisma/prismaClient"; // Adjust to match your import structure
-import { JWTPayload } from "../types/payload"; // Ensure the correct path
+import { JWTPayload } from "../types/payload"; // Make sure this path is correct
 
 // Get user profile
 export const getUserProfile = async (req: Request, res: Response) => {
   try {
-    // Check if req.user is defined
-    if (!req.user) {
+    // Ensure req.user is defined and safely access userId
+    const userId = req.user?.userId;
+    if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-
-    const userId = req.user.userId;  // Access 'userId' from decoded token
 
     // Find user from the database using userId
     const user = await prisma.user.findUnique({
@@ -43,12 +42,11 @@ export const getUserProfile = async (req: Request, res: Response) => {
 export const updateUserProfile = async (req: Request, res: Response) => {
   const { name, email, role } = req.body;
 
-  // Ensure req.user is defined and access userId
-  if (!req.user) {
+  // Ensure req.user is defined and safely access userId
+  const userId = req.user?.userId;
+  if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-
-  const userId = req.user.userId; // Access 'userId' from decoded token
 
   try {
     // Update user details in the database
@@ -74,12 +72,11 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 
 // Delete user profile
 export const deleteUserProfile = async (req: Request, res: Response) => {
-  // Ensure req.user is defined and access userId
-  if (!req.user) {
+  // Ensure req.user is defined and safely access userId
+  const userId = req.user?.userId;
+  if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-
-  const userId = req.user.userId; // Access 'userId' from decoded token
 
   try {
     // Delete user from the database
