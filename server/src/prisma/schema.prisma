@@ -25,6 +25,8 @@ model Product {
   categoryId  Int?
   orderItems  OrderItem[] // Relation defined here
   category    Category?   @relation(fields: [categoryId], references: [id])
+  vendorId    Int?        // Add the vendorId field to relate to Vendor
+  vendor      Vendor?     @relation(fields: [vendorId], references: [id]) // Relation to Vendor
 
   @@index([name])
   @@index([categoryId, price], map: "idx_category_price")
@@ -42,15 +44,37 @@ model Category {
   @@index([name])
 }
 
+model Vendor {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(100)
+  email     String    @unique @db.VarChar(255)
+  phone     String?   @db.VarChar(20)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  orders    Order[]   // Orders placed by the vendor
+  userId    Int       @unique // Ensure userId is unique for a one-to-one relation
+  user      User      @relation(fields: [userId], references: [id]) // One-to-one relation to User
+  
+  // Add this reverse relation field
+  products  Product[] // Relation to Product
+
+  @@index([email])
+}
+
+
 model Order {
   id              Int         @id @default(autoincrement())
   customerName    String
   customerEmail   String
   shippingAddress String
   totalAmount     Float
-  items           OrderItem[] @relation("OrderItems") // Relation defined here
-  customer        Customer    @relation("CustomerOrders", fields: [customerId], references: [id]) // Relation defined here
+  items           OrderItem[] @relation("OrderItems") 
+  customer        Customer    @relation("CustomerOrders", fields: [customerId], references: [id])
   customerId      Int
+  vendor          Vendor?     @relation(fields: [vendorId], references: [id])
+  vendorId        Int?        // Nullable relation field for Vendor
+
+  @@index([customerId])
 }
 
 model OrderItem {
@@ -92,9 +116,11 @@ model User {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   deletedAt DateTime?
-
+  vendorId  Int?
   customer   Customer? @relation("UserCustomer") // Reverse relation to Customer
   customerId Int? // Prisma will infer this from the relation
+
+  vendor     Vendor? @relation // Reverse relation to Vendor
 
   @@index([email])
 }

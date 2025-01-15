@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios"; // Import axios for data fetching
 import { useNavigate } from "react-router-dom"; // For navigation
+import { io } from "socket.io-client"; // For Socket.IO real-time updates
+import Spinner from "../components/Spinner";  // Assuming you have a Spinner component for loading state
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("products");
@@ -25,16 +27,16 @@ const AdminDashboard = () => {
     setLoading(true); // Set loading to true before making the request
     try {
       if (tab === "products") {
-        const response = await axios.get("http://localhost:4001/api/products");
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/products`);
         setProducts(response.data);
       } else if (tab === "categories") {
-        const response = await axios.get("http://localhost:4001/api/categories");
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/categories`);
         setCategories(response.data);
       } else if (tab === "users") {
-        const response = await axios.get("http://localhost:4001/api/users");
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/users`);
         setUsers(response.data);
       } else if (tab === "orders") {
-        const response = await axios.get("http://localhost:4001/api/orders");
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/orders`);
         setOrders(response.data);
       }
     } catch (error) {
@@ -50,14 +52,47 @@ const AdminDashboard = () => {
     fetchData(activeTab);
   }, [activeTab]);
 
+  // Setting up real-time updates for products using Socket.IO
+  useEffect(() => {
+    const socket = io("http://localhost:4001"); // Your socket server URL
+
+    // Listen for product updates
+    socket.on("productUpdated", (updatedProduct) => {
+      setProducts((prevProducts) => {
+        const index = prevProducts.findIndex((prod) => prod.id === updatedProduct.id);
+        if (index !== -1) {
+          prevProducts[index] = updatedProduct;
+          return [...prevProducts];
+        } else {
+          return [...prevProducts, updatedProduct]; // Add new product if not present
+        }
+      });
+    });
+
+    // Cleanup the socket connection on component unmount
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   // Function to render the active tab's content
   const renderContent = () => {
     if (loading) {
-      return <p>Loading...</p>; // Display loading message
+      return <Spinner />; // Display loading spinner while loading
     }
 
     if (error) {
-      return <p>{error}</p>; // Display error message
+      return (
+        <div className="text-center text-red-500">
+          <p>{error}</p>
+          <button 
+            onClick={() => fetchData(activeTab)} 
+            className="bg-blue-600 text-white py-2 px-4 rounded-md mt-4"
+          >
+            Retry
+          </button>
+        </div>
+      );
     }
 
     switch (activeTab) {
@@ -123,25 +158,25 @@ const AdminDashboard = () => {
         <h2 className="text-xl font-semibold mb-6">Admin Dashboard</h2>
         <ul className="space-y-4">
           <li
-            className={`cursor-pointer ${activeTab === "products" ? "text-blue-200" : "hover:text-blue-200"}`}
+            className={`cursor-pointer p-2 rounded-md ${activeTab === "products" ? "bg-blue-700 text-white" : "hover:bg-blue-700"}`}
             onClick={() => setActiveTab("products")}
           >
             Products
           </li>
           <li
-            className={`cursor-pointer ${activeTab === "categories" ? "text-blue-200" : "hover:text-blue-200"}`}
+            className={`cursor-pointer p-2 rounded-md ${activeTab === "categories" ? "bg-blue-700 text-white" : "hover:bg-blue-700"}`}
             onClick={() => setActiveTab("categories")}
           >
             Categories
           </li>
           <li
-            className={`cursor-pointer ${activeTab === "users" ? "text-blue-200" : "hover:text-blue-200"}`}
+            className={`cursor-pointer p-2 rounded-md ${activeTab === "users" ? "bg-blue-700 text-white" : "hover:bg-blue-700"}`}
             onClick={() => setActiveTab("users")}
           >
             Users
           </li>
           <li
-            className={`cursor-pointer ${activeTab === "orders" ? "text-blue-200" : "hover:text-blue-200"}`}
+            className={`cursor-pointer p-2 rounded-md ${activeTab === "orders" ? "bg-blue-700 text-white" : "hover:bg-blue-700"}`}
             onClick={() => setActiveTab("orders")}
           >
             Orders

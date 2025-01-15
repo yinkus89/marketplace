@@ -3,16 +3,26 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export const createOrder = async (customerName: string, customerEmail: string, shippingAddress: string, items: { productId: number, quantity: number }[]) => {
+export const createOrder = async (
+  customerId: number,  // Add the customerId
+  customerName: string, 
+  customerEmail: string, 
+  shippingAddress: string, 
+  items: { productId: number, quantity: number }[]
+) => {
   try {
     const totalAmount = await calculateTotalAmount(items);
     
+    // Create the order and associate it with the customer
     const order = await prisma.order.create({
       data: {
         customerName,
         customerEmail,
         shippingAddress,
         totalAmount,
+        customer: {  // Associate with customer
+          connect: { id: customerId },  // Ensure that the customerId exists
+        },
         items: {
           create: items.map(item => ({
             productId: item.productId,

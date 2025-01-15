@@ -12,36 +12,42 @@ function Admin() {
   });
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [newCustomer, setNewCustomer] = useState({ name: "", email: "", phone: "" });
+  const [newVendor, setNewVendor] = useState({ name: "", email: "", businessName: "" });
 
-  // Fetch products and categories
+  // Fetch products, categories, customers, and vendors
   useEffect(() => {
     setLoading(true);
 
+    // Fetch products
     API.get("/products")
-      .then((response) => {
-        setProducts(response.data);
-      })
-      .catch((err) => {
-        setError("Failed to load products.");
-        console.error(err);
-      });
-
+      .then((response) => setProducts(response.data))
+      .catch((err) => setError("Failed to load products."));
+    
+    // Fetch categories
     API.get("/categories")
-      .then((response) => {
-        setCategories(response.data);
-      })
-      .catch((err) => {
-        setError("Failed to load categories.");
-        console.error(err);
-      })
+      .then((response) => setCategories(response.data))
+      .catch((err) => setError("Failed to load categories."));
+
+    // Fetch customers
+    API.get("/customers")
+      .then((response) => setCustomers(response.data))
+      .catch((err) => setError("Failed to load customers."));
+
+    // Fetch vendors
+    API.get("/vendors")
+      .then((response) => setVendors(response.data))
+      .catch((err) => setError("Failed to load vendors."))
       .finally(() => setLoading(false));
   }, []);
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+  // Handle form submissions for product, customer, and vendor
+  const handleSubmitProduct = (e) => {
     e.preventDefault();
 
     if (!product.name || !product.price || !product.description || !product.imageUrl || !product.category) {
@@ -50,19 +56,42 @@ function Admin() {
     }
 
     setLoading(true);
-
     API.post("/products", product)
       .then(() => {
         alert("Product added!");
-        setLoading(false);
         setProducts([...products, product]);
         setProduct({ name: "", price: 0, description: "", imageUrl: "", category: "", isNewCollection: false });
       })
-      .catch((err) => {
-        setError("Failed to add product. Please try again.");
-        setLoading(false);
-        console.error(err);
-      });
+      .catch((err) => setError("Failed to add product."));
+      setLoading(false);
+  };
+
+  const handleSubmitCustomer = (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+    API.post("/customers", newCustomer)
+      .then(() => {
+        alert("Customer added!");
+        setCustomers([...customers, newCustomer]);
+        setNewCustomer({ name: "", email: "", phone: "" });
+      })
+      .catch((err) => setError("Failed to add customer."));
+      setLoading(false);
+  };
+
+  const handleSubmitVendor = (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+    API.post("/vendors", newVendor)
+      .then(() => {
+        alert("Vendor added!");
+        setVendors([...vendors, newVendor]);
+        setNewVendor({ name: "", email: "", businessName: "" });
+      })
+      .catch((err) => setError("Failed to add vendor."));
+      setLoading(false);
   };
 
   // Filter products for search and New Collection
@@ -87,7 +116,7 @@ function Admin() {
       />
 
       {/* Product Form */}
-      <form onSubmit={handleSubmit} className="admin-form">
+      <form onSubmit={handleSubmitProduct} className="admin-form">
         <input
           type="text"
           placeholder="Product Name"
@@ -95,7 +124,6 @@ function Admin() {
           onChange={(e) => setProduct({ ...product, name: e.target.value })}
           className="input-field"
         />
-
         <input
           type="number"
           placeholder="Price"
@@ -103,14 +131,12 @@ function Admin() {
           onChange={(e) => setProduct({ ...product, price: e.target.value })}
           className="input-field"
         />
-
         <textarea
           placeholder="Description"
           value={product.description}
           onChange={(e) => setProduct({ ...product, description: e.target.value })}
           className="input-field"
         />
-
         <input
           type="text"
           placeholder="Image URL"
@@ -118,8 +144,6 @@ function Admin() {
           onChange={(e) => setProduct({ ...product, imageUrl: e.target.value })}
           className="input-field"
         />
-
-        {/* Category Dropdown */}
         <select
           value={product.category}
           onChange={(e) => setProduct({ ...product, category: e.target.value })}
@@ -132,8 +156,6 @@ function Admin() {
             </option>
           ))}
         </select>
-
-        {/* New Collection Checkbox */}
         <div>
           <label>
             <input
@@ -144,7 +166,6 @@ function Admin() {
             Mark as New Collection
           </label>
         </div>
-
         <button type="submit" disabled={loading} className="submit-btn">
           {loading ? "Adding..." : "Add Product"}
         </button>
@@ -186,6 +207,58 @@ function Admin() {
           ))
         )}
       </div>
+
+      {/* Add Customer Form */}
+      <h2>Add Customer</h2>
+      <form onSubmit={handleSubmitCustomer}>
+        <input
+          type="text"
+          placeholder="Customer Name"
+          value={newCustomer.name}
+          onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+        />
+        <input
+          type="email"
+          placeholder="Customer Email"
+          value={newCustomer.email}
+          onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Customer Phone"
+          value={newCustomer.phone}
+          onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? "Adding..." : "Add Customer"}
+        </button>
+      </form>
+
+      {/* Add Vendor Form */}
+      <h2>Add Vendor</h2>
+      <form onSubmit={handleSubmitVendor}>
+        <input
+          type="text"
+          placeholder="Vendor Name"
+          value={newVendor.name}
+          onChange={(e) => setNewVendor({ ...newVendor, name: e.target.value })}
+        />
+        <input
+          type="email"
+          placeholder="Vendor Email"
+          value={newVendor.email}
+          onChange={(e) => setNewVendor({ ...newVendor, email: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Business Name"
+          value={newVendor.businessName}
+          onChange={(e) => setNewVendor({ ...newVendor, businessName: e.target.value })}
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? "Adding..." : "Add Vendor"}
+        </button>
+      </form>
     </div>
   );
 }

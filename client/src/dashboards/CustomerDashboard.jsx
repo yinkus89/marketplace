@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';  // Import axios for API requests
 import { Link, useNavigate } from 'react-router-dom';
+import ClipLoader from "react-spinners/ClipLoader"; // Import the loader
 
-const UserDashboard = () => {
+const CustomerDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,7 +21,7 @@ const UserDashboard = () => {
         }
 
         // Fetch orders from the API
-        const response = await axios.get('http://localhost:4001/api/orders', {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/orders`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -74,7 +75,9 @@ const UserDashboard = () => {
           
           {/* Loading, Error, and Data Display */}
           {loading ? (
-            <div className="text-center text-gray-500">Loading...</div>
+            <div className="flex justify-center items-center">
+              <ClipLoader color={"#000"} loading={loading} size={50} />
+            </div>
           ) : error ? (
             <div className="text-center text-red-600">{error}</div>
           ) : orders.length === 0 ? (
@@ -103,4 +106,4 @@ const UserDashboard = () => {
   );
 };
 
-export default UserDashboard;
+export default CustomerDashboard;

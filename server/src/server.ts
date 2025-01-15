@@ -4,18 +4,21 @@ import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import prisma from './prisma/prismaClient';
 import compression from 'compression';
+import prisma from './prisma/prismaClient';
 import productRoutes from './routes/productRoutes';
 import orderRoutes from './routes/orderRoutes';
 import categoryRoutes from './routes/categoryRoutes';
 import userRoutes from './routes/userRoutes';
-import  authRoutes  from './routes/authRoutes'; // Correct import
+import authRoutes from './routes/authRoutes';
+import vendorRoutes from './routes/vendorRoutes';
+import customerRoutes from './routes/customerRoutes';
+import adminRoutes from './routes/adminRoutes'; // Import admin routes
 
 dotenv.config();
 
 const app = express();
-
+app.use(compression());
 // Rate limiting for all routes
 const globalRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -37,6 +40,9 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);  // This will handle both login and register
+app.use("/api/vendors", vendorRoutes);  // Add vendor routes
+app.use("/api/customers", customerRoutes);  // Add customer routes
+app.use("/api/admin", adminRoutes);  // Add admin routes
 
 // Health Check Route
 app.get('/health', (req, res) => {

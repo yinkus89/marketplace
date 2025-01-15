@@ -1,30 +1,21 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { JWTPayload } from '../types/payload';  // Import JWTPayload from a separate file
 
 // Extend the Request interface to include `user`
 declare global {
   namespace Express {
     interface Request {
-      user?: {
-        userId: number; // Change this from string to number
-        email: string;
-        role: string;
-      };
+      user?: JWTPayload; // User type is now JWTPayload
     }
   }
 }
 
-// Define the JWT payload type, ensuring the userId matches the type in your database
-interface JWTPayload {
-  userId: number;  // Ensure this matches your database type (number or string)
-  email: string;
-  role: string;
-}
-
 // Protect routes middleware
 export const protectRoute = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.header("Authorization");
-  
+  // Get the token from Authorization header
+  const token = req.header("Authorization")?.replace("Bearer ", "");
+
   if (!token) {
     return res.status(401).json({ message: "Access denied, no token provided" });
   }
@@ -38,6 +29,7 @@ export const protectRoute = (req: Request, res: Response, next: NextFunction) =>
 
     next(); // Proceed to the next middleware/handler
   } catch (err) {
+    console.error("JWT verification error:", err);  // Log the error for debugging purposes
     res.status(400).json({ message: "Invalid token" });
   }
 };

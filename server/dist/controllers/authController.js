@@ -12,115 +12,137 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyToken = exports.login = exports.register = void 0;
+exports.deleteProfile = exports.updateProfile = exports.getProfile = exports.login = exports.register = void 0;
+const express_validator_1 = require("express-validator");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const prismaClient_1 = __importDefault(require("../prisma/prismaClient")); // Adjust to match your import structure
-// Register a new user
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
+// Register controller
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password, name, role } = req.body; // Changed 'username' to 'name'
-    // Validate that necessary fields are provided
-    if (!email || !password || !name) {
-        // Changed 'username' to 'name'
-        return res
-            .status(400)
-            .json({ error: "Email, password, and name are required." }); // Changed 'username' to 'name'
+    const errors = (0, express_validator_1.validationResult)(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
     }
-    // Check if the email already exists in the database
-    const existingUser = yield prismaClient_1.default.user.findUnique({
-        where: {
-            email,
-        },
-    });
-    if (existingUser) {
-        return res.status(400).json({ error: "Email is already in use" });
-    }
+    const { email, name, password, role } = req.body;
     try {
-        // Hash the password
-        const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
-        // Create a new user in the database
-        const newUser = yield prismaClient_1.default.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                name, // Changed 'username' to 'name'
-                role: role || "CUSTOMER", // Default to 'CUSTOMER' if no role is provided
-            },
+        // Check if user already exists
+        const existingUser = yield prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Email already in use' });
+        }
+        // Hash password
+        const hashedPassword = yield bcryptjs_1.default.hash(password, 12);
+        // Create new user
+        const newUser = yield prisma.user.create({
+            data: { email, name, password: hashedPassword, role },
         });
-        // Send success response
         res.status(201).json({
-            message: "User registered successfully",
-            user: {
-                id: newUser.id,
-                email: newUser.email,
-                name: newUser.name, // Changed 'username' to 'name'
-                role: newUser.role,
-            },
+            success: true,
+            message: 'User registered successfully',
+            data: { user: { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role } },
         });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Server error during registration" });
+        res.status(500).json({ message: 'Error registering user' });
     }
 });
 exports.register = register;
-// Login a user
+// Login controller
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
-    // Validate that necessary fields are provided
-    if (!email || !password) {
-        return res.status(400).json({ error: "Email and password are required." });
-    }
     try {
-        // Find the user by email
-        const user = yield prismaClient_1.default.user.findUnique({
-            where: {
-                email,
-            },
-        });
+        // Find user by email
+        const user = yield prisma.user.findUnique({ where: { email } });
         if (!user) {
-            return res.status(404).json({ error: "User not found" });
+            return res.status(400).json({ message: 'Invalid email or password' });
         }
-        // Compare the provided password with the hashed password in the database
-        const isPasswordValid = yield bcryptjs_1.default.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ error: "Invalid credentials" });
+        // Compare passwords
+        const isMatch = yield bcryptjs_1.default.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Invalid email or password' });
         }
-        // Create a JWT token with a 1-hour expiration time
-        const token = jsonwebtoken_1.default.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET, {
-            expiresIn: "1h",
-        });
-        // Send the token and user information back to the client
+        // Generate JWT token
+        const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '1h' });
         res.status(200).json({
-            message: "Login successful",
-            token,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name, // Changed 'username' to 'name'
-                role: user.role,
-            },
+            success: true,
+            message: 'Login successful',
+            data: { token },
         });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Server error during login" });
+        res.status(500).json({ message: 'Error logging in' });
     }
 });
 exports.login = login;
-// Function to verify token in protected routes
-const verifyToken = (req, res, next) => {
-    var _a;
-    const token = (_a = req.headers["authorization"]) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
-    if (!token) {
-        return res.status(403).json({ error: "No token provided" });
+// Get Profile controller
+const getProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized access, no user found in request' });
     }
-    jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-            return res.status(403).json({ error: "Invalid token" });
+    try {
+        const userId = req.user.userId;
+        const user = yield prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
         }
-        req.user = decoded;
-        next();
-    });
-};
-exports.verifyToken = verifyToken;
+        res.status(200).json({
+            success: true,
+            data: { user: { id: user.id, email: user.email, name: user.name, role: user.role } },
+        });
+    }
+    catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ message: 'Error fetching user profile' });
+    }
+});
+exports.getProfile = getProfile;
+// Update Profile controller
+const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, email } = req.body;
+    try {
+        if (!req.user) {
+            return res.status(401).json({ message: 'Unauthorized access' });
+        }
+        const userId = req.user.userId;
+        const updatedUser = yield prisma.user.update({
+            where: { id: userId },
+            data: { name, email },
+        });
+        res.status(200).json({
+            success: true,
+            message: 'User profile updated successfully',
+            data: { user: { id: updatedUser.id, email: updatedUser.email, name: updatedUser.name, role: updatedUser.role } },
+        });
+    }
+    catch (error) {
+        console.error('Error updating user profile:', error);
+        res.status(500).json({ message: 'Error updating user profile' });
+    }
+});
+exports.updateProfile = updateProfile;
+// Delete Profile controller
+const deleteProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized access' });
+    }
+    try {
+        const userId = req.user.userId;
+        yield prisma.user.delete({
+            where: { id: userId },
+        });
+        res.status(200).json({
+            success: true,
+            message: 'User profile deleted successfully',
+        });
+    }
+    catch (error) {
+        console.error('Error deleting user profile:', error);
+        res.status(500).json({ message: 'Error deleting user profile' });
+    }
+});
+exports.deleteProfile = deleteProfile;

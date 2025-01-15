@@ -9,50 +9,50 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUserStatus = exports.getAllUsers = void 0;
+exports.updateUserProfile = exports.getAllOrders = exports.getAllUsers = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
-// Get all users
+// Example of a route to get all users (Admins only)
 const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const users = yield prisma.user.findMany();
-        res.status(200).json(users);
+        res.status(200).json({ success: true, data: users });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Error fetching users' });
     }
 });
 exports.getAllUsers = getAllUsers;
-// Update user status
-const updateUserStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.params;
-    const { status } = req.body;
+// Example of a route to get all orders (Admins only)
+const getAllOrders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const orders = yield prisma.order.findMany();
+        res.status(200).json({ success: true, data: orders });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching orders' });
+    }
+});
+exports.getAllOrders = getAllOrders;
+// Example of a route to update any user's profile (Admins only)
+const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId, name, email, role } = req.body;
     try {
         const updatedUser = yield prisma.user.update({
-            where: { id: Number(id) },
-            data: { status },
+            where: { id: userId },
+            data: { name, email, role },
         });
-        res.status(200).json({ message: 'User status updated', updatedUser });
+        res.status(200).json({
+            success: true,
+            message: 'User profile updated successfully',
+            data: updatedUser,
+        });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Error updating user profile' });
     }
 });
-exports.updateUserStatus = updateUserStatus;
-// Delete a user
-const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.params;
-    try {
-        const deletedUser = yield prisma.user.delete({
-            where: { id: Number(id) },
-        });
-        res.status(200).json({ message: 'User deleted', deletedUser });
-    }
-    catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-exports.deleteUser = deleteUser;
+exports.updateUserProfile = updateUserProfile;

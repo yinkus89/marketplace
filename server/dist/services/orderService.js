@@ -13,15 +13,20 @@ exports.deleteOrder = exports.updateOrder = exports.getOrderById = exports.getAl
 // src/services/orderService.ts
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
-const createOrder = (customerName, customerEmail, shippingAddress, items) => __awaiter(void 0, void 0, void 0, function* () {
+const createOrder = (customerId, // Add the customerId
+customerName, customerEmail, shippingAddress, items) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const totalAmount = yield calculateTotalAmount(items);
+        // Create the order and associate it with the customer
         const order = yield prisma.order.create({
             data: {
                 customerName,
                 customerEmail,
                 shippingAddress,
                 totalAmount,
+                customer: {
+                    connect: { id: customerId }, // Ensure that the customerId exists
+                },
                 items: {
                     create: items.map(item => ({
                         productId: item.productId,
