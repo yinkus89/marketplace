@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+const stripePromise = loadStripe('your-publishable-key-here');  // Use your own Stripe publishable key
 
 const Checkout = () => {
   const { state } = useCart();
@@ -10,19 +14,33 @@ const Checkout = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [shippingAddress, setShippingAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState(''); // Store the selected payment method
-  const [cardDetails, setCardDetails] = useState({ cardNumber: '', expiry: '', cvv: '' });
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
+  const stripe = useStripe();
+  const elements = useElements();
+
+  // Use useEffect to fetch user data if the user is already registered or logged in
+  useEffect(() => {
+    // Simulate fetching user info (this can come from local storage, context, or API)
+    const userData = JSON.parse(localStorage.getItem('userData')); // Example: userData from localStorage
+    if (userData) {
+      setEmail(userData.email);
+      setName(userData.name);
+      setIsRegistered(true);
+    }
+  }, []);  // Empty dependency array to run only once on component mount
 
   if (cartItems.length === 0) {
     return <p>Your cart is empty. Please add items to your cart before proceeding.</p>;
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // Simple form validation
-    if (!email || !shippingAddress || !paymentMethod) {
+    // Validation for required fields
+    if (!email || !shippingAddress || !paymentMethod || !phoneNumber) {
       alert('Please fill in all required fields.');
       return;
     }
@@ -32,30 +50,46 @@ const Checkout = () => {
       return;
     }
 
-    if (paymentMethod === 'creditCard' && (!cardDetails.cardNumber || !cardDetails.expiry || !cardDetails.cvv)) {
-      alert('Please provide complete card details.');
+    if (paymentMethod === 'creditCard' && !stripe) {
+      alert('Stripe is not loaded yet.');
       return;
     }
 
-    // Simulate order submission
-    console.log('Order Submitted:', {
-      cartItems,
-      isRegistered,
-      email,
-      name,
-      password,
-      shippingAddress,
-      paymentMethod,
-      cardDetails,
-    });
+    // Handle Stripe payment method
+    if (paymentMethod === 'creditCard') {
+      const { error, paymentMethod: stripePaymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: elements.getElement(CardElement),
+      });
 
-    // After submission, navigate to the order confirmation page or home page
-    navigate('/order-confirmation');
+      if (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+
+      console.log('Payment method created: ', stripePaymentMethod);
+      // Here you would send the paymentMethod.id to your server to complete the payment process.
+      
+      // Simulate order submission
+      console.log('Order Submitted:', {
+        cartItems,
+        isRegistered,
+        email,
+        name,
+        password,
+        shippingAddress,
+        phoneNumber, // Added phone number to order details
+        paymentMethod,
+        stripePaymentMethod,
+      });
+
+      // After submission, navigate to the order confirmation page or home page
+      navigate('/order-confirmation');
+    }
   };
 
   const handlePaymentMethodChange = (method) => {
     setPaymentMethod(method);
-    setCardDetails({ cardNumber: '', expiry: '', cvv: '' }); // Reset card details on payment method change
   };
 
   return (
@@ -134,19 +168,6 @@ const Checkout = () => {
           </>
         )}
 
-        {/* Guest Checkout Fields */}
-        {!isRegistered && (
-          <div className="mb-4">
-            <input
-              type="email"
-              placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="border px-4 py-2 rounded-md w-full"
-            />
-          </div>
-        )}
-
         {/* Shipping Address */}
         <div className="mb-4">
           <input
@@ -154,6 +175,17 @@ const Checkout = () => {
             placeholder="Shipping Address"
             value={shippingAddress}
             onChange={(e) => setShippingAddress(e.target.value)}
+            className="border px-4 py-2 rounded-md w-full"
+          />
+        </div>
+
+        {/* Phone Number Field */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Phone Number"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
             className="border px-4 py-2 rounded-md w-full"
           />
         </div>
@@ -187,27 +219,7 @@ const Checkout = () => {
         {paymentMethod === 'creditCard' && (
           <div className="mb-4">
             <h4 className="text-xl">Credit Card Details</h4>
-            <input
-              type="text"
-              placeholder="Card Number"
-              value={cardDetails.cardNumber}
-              onChange={(e) => setCardDetails({ ...cardDetails, cardNumber: e.target.value })}
-              className="border px-4 py-2 rounded-md w-full mb-2"
-            />
-            <input
-              type="text"
-              placeholder="Expiry Date (MM/YY)"
-              value={cardDetails.expiry}
-              onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
-              className="border px-4 py-2 rounded-md w-full mb-2"
-            />
-            <input
-              type="text"
-              placeholder="CVV"
-              value={cardDetails.cvv}
-              onChange={(e) => setCardDetails({ ...cardDetails, cvv: e.target.value })}
-              className="border px-4 py-2 rounded-md w-full"
-            />
+            <CardElement className="border px-4 py-2 rounded-md w-full" />
           </div>
         )}
 
@@ -217,8 +229,10 @@ const Checkout = () => {
           </div>
         )}
 
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+
         <div className="mt-4">
-          <button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded-md">
+          <button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded-md" disabled={!stripe}>
             Submit Order
           </button>
         </div>
@@ -227,4 +241,10 @@ const Checkout = () => {
   );
 };
 
-export default Checkout;
+const StripeWrapper = () => (
+  <Elements stripe={stripePromise}>
+    <Checkout />
+  </Elements>
+);
+
+export default StripeWrapper;

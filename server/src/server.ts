@@ -6,6 +6,8 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import compression from 'compression';
 import prisma from './prisma/prismaClient';
+import socketIO from 'socket.io'; // Import Socket.IO
+import http from 'http'; // Import HTTP server
 import productRoutes from './routes/productRoutes';
 import orderRoutes from './routes/orderRoutes';
 import categoryRoutes from './routes/categoryRoutes';
@@ -18,7 +20,14 @@ import adminRoutes from './routes/adminRoutes'; // Import admin routes
 dotenv.config();
 
 const app = express();
-app.use(compression());
+const server = http.createServer(app); // Create HTTP server with express
+const io = new socketIO.Server(server, {
+  cors: {
+    origin: '*', // Allow all origins, update this for production
+    methods: ['GET', 'POST']
+  }
+});
+
 // Rate limiting for all routes
 const globalRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -64,8 +73,32 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ message: "Internal Server Error", error: err.message });
 });
 
+// WebSocket server setup
+io.on('connection', (socket) => {
+  console.log('New client connected:', socket.id);
+
+  // Listen for a message from a customer or vendor
+  socket.on('sendMessage', (data) => {
+    const { sender, message } = data; // sender can be 'customer' or 'vendor'
+    console.log(`New message from ${sender}: ${message}`);
+
+    // Broadcast the message to all clients (vendors or customers)
+    io.emit('newMessage', { sender, message });
+  });
+
+  // Listen for typing status
+  socket.on('typing', (data) => {
+    const { sender, isTyping } = data;
+    socket.broadcast.emit('typing', { sender, isTyping });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
+
 // Graceful Shutdown
-const server = app.listen(process.env.PORT || 4001, () => {
+server.listen(process.env.PORT || 4001, () => {
   console.log(`Server is running on port ${process.env.PORT || 4001}`);
 });
 
