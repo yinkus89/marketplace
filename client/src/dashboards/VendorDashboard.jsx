@@ -4,6 +4,8 @@ import InventoryManagement from "./InventoryManagement";
 import SalesAnalytics from "./SalesAnalytics";
 import OrderManagement from "./OrderManagement";
 import VendorProfile from "./VendorProfile";
+import StoreList from "../components/StoreList"; // Import StoreList
+import CreateStoreForm from "../components/CreateStoreForm"; // Import CreateStoreForm
 import { useNavigate } from "react-router-dom";
 import axios from "axios"; // For API requests
 import Spinner from "../components/Spinner"; // Import a spinner component for loading state
@@ -57,6 +59,10 @@ const VendorDashboard = () => {
         return <OrderManagement />;
       case "profile":
         return <VendorProfile />;
+      case "stores":
+        return <StoreList />; // Render StoreList component
+      case "createStore":
+        return <CreateStoreForm />; // Render CreateStoreForm component
       default:
         return <InventoryManagement />;
     }

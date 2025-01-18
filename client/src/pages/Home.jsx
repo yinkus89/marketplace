@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useMemo } from "react";
-import API from "../api/apiClient";
+import API from "../api/apiClient"; // Adjusted API import for consistency
 import { useCart } from "../context/CartContext";
 import ProductCard from "../components/ProductCard"; // Assuming you have a ProductCard component
 import Sidebar from "../components/Sidebar"; // Sidebar import
-import { FaBars } from 'react-icons/fa';  // Importing the Hamburger Icon
+import { FaBars } from "react-icons/fa"; // Importing the Hamburger Icon
+import StoreList from "../components/StoreList"; // Import StoreList component
+import StoreReviews from "../components/StoreReviews"; // Import StoreReviews component
 
 const Home = () => {
   const [products, setProducts] = useState([]); // All products
@@ -13,6 +15,8 @@ const Home = () => {
   const { dispatch } = useCart(); // Get the dispatch function from CartContext
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar visibility state
+  const [selectedStoreId, setSelectedStoreId] = useState(null); // State to track selected store for reviews
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -64,20 +68,29 @@ const Home = () => {
       </button>
 
       {/* Sidebar Component */}
-      <Sidebar
-        isSidebarOpen={isSidebarOpen}
-        toggleSidebar={toggleSidebar}
-      />
+      <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
       {/* Main Content */}
       <div
-        className={`flex-1 p-6 ${
-          isSidebarOpen ? "ml-64" : "ml-0"
-        } transition-all duration-300`} // Adds smooth transition for margin
+        className={`flex-1 p-6 ${isSidebarOpen ? "ml-64" : "ml-0"} transition-all duration-300`} // Adds smooth transition for margin
       >
         <h1 className="text-2xl font-semibold my-4">Products</h1>
 
-        {/* 3D Search Bar */}
+        {/* Store List Section */}
+        <section className="mb-8">
+          <h2 className="text-xl font-bold mb-4">Stores</h2>
+          <StoreList onSelectStore={(storeId) => setSelectedStoreId(storeId)} />
+        </section>
+
+        {/* Store Reviews Section */}
+        {selectedStoreId && (
+          <section className="mb-8">
+            <h2 className="text-xl font-bold mb-4">Store Reviews</h2>
+            <StoreReviews storeId={selectedStoreId} />
+          </section>
+        )}
+
+        {/* Search Bar */}
         <div className="mb-6">
           <input
             type="text"
@@ -88,7 +101,7 @@ const Home = () => {
           />
         </div>
 
-        {/* 3D Product Cards */}
+        {/* Product Cards */}
         <div className="flex flex-wrap justify-center gap-6">
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product) => (

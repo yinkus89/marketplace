@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { GoogleOAuthProvider } from '@react-oauth/google';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -28,6 +32,9 @@ import AdminDashboard from "./dashboards/AdminDashboard";
 import LogoutPage from "./pages/LogoutPage";
 import { CartProvider } from "./context/CartContext";
 import DashboardLayout from "./dashboards/DashboardLayout";
+import StoreList from "./components/StoreList";
+import StoreReviews from "./components/StoreReviews";
+
 import "./styles/globalStyles.css";
 
 // Utility function to get the user role
@@ -76,88 +83,97 @@ const App = () => {
   }, []);
 
   return (
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
-      <Router>
-        <div className="main-container">
-          <div className="background-3d"></div>
+    <Router>
+      <div className="main-container">
+        <div className="background-3d"></div>
 
-          {/* Sidebar for General Visitors */}
-          {!userRole && (
-            <Sidebar
-              onCategorySelect={setSelectedCategory}
-              isSidebarOpen={isSidebarOpen}
-              toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-            />
-          )}
+        {/* Sidebar for General Visitors */}
+        {!userRole && (
+          <Sidebar
+            onCategorySelect={setSelectedCategory}
+            isSidebarOpen={isSidebarOpen}
+            toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
+        )}
 
-          <div className="content">
-            <MouseMoveEffect />
-            <Header />
-            <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <div className="content">
+          <MouseMoveEffect />
+          <Header />
+          <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-            {isLoading && <Spinner />}
+          {isLoading && <Spinner />}
 
-            <CartProvider>
-              <Routes>
-                {/* General Routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/shop" element={<Shop selectedCategory={selectedCategory} />} />
-                <Route path="/product/:id" element={<ProductDetails />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/orders/:id" element={<OrderDetails />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/new-collection" element={<NewCollection />} />
+          <CartProvider>
+            <Routes>
+              {/* General Routes */}
+              <Route path="/" element={<StoreList />} />
+              <Route path="/stores/:storeId/reviews" element={<StoreReviews />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/shop" element={<Shop selectedCategory={selectedCategory} />} />
+              <Route path="/product/:id" element={<ProductDetails />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/orders/:id" element={<OrderDetails />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/new-collection" element={<NewCollection />} />
 
-                {/* Role-Based Routes with PrivateRoute */}
-                <Route
-                  path="/admin/dashboard"
-                  element={
-                    <PrivateRoute roleRequired="admin" element={
+              {/* Role-Based Routes with PrivateRoute */}
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <PrivateRoute
+                    roleRequired="admin"
+                    element={
                       <DashboardLayout sidebar={<AdminSidebar />}>
                         <AdminDashboard />
                       </DashboardLayout>
-                    } />
-                  }
-                />
-                <Route
-                  path="/vendor/dashboard"
-                  element={
-                    <PrivateRoute roleRequired="vendor" element={
+                    }
+                  />
+                }
+              />
+              <Route
+                path="/vendor/dashboard"
+                element={
+                  <PrivateRoute
+                    roleRequired="vendor"
+                    element={
                       <DashboardLayout sidebar={<VendorSidebar />}>
                         <VendorDashboard />
                       </DashboardLayout>
-                    } />
-                  }
-                />
-                <Route
-                  path="/customer/dashboard"
-                  element={
-                    <PrivateRoute roleRequired="customer" element={
+                    }
+                  />
+                }
+              />
+              <Route
+                path="/customer/dashboard"
+                element={
+                  <PrivateRoute
+                    roleRequired="customer"
+                    element={
                       <DashboardLayout sidebar={<CustomerSidebar />}>
                         <CustomerDashboard />
                       </DashboardLayout>
-                    } />
-                  }
-                />
+                    }
+                  />
+                }
+              />
 
-                {/* Logout Page */}
-                <Route path="/logout" element={<LogoutPage />} />
+              {/* Logout Page */}
+              <Route path="/logout" element={<LogoutPage />} />
 
-                {/* Catch-All Route */}
-                <Route path="*" element={<Navigate to="/login" />} />
-              </Routes>
-            </CartProvider>
+              {/* Catch-All Route */}
+              <Route path="*" element={<Navigate to="/login" />} />
+            </Routes>
+          </CartProvider>
 
-            <Footer />
-          </div>
+          <Footer />
         </div>
-      </Router>
-    </GoogleOAuthProvider>
+      </div>
+    </Router>
   );
 };
 

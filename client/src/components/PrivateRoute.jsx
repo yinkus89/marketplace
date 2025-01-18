@@ -3,18 +3,20 @@ import { Navigate, useLocation } from "react-router-dom";
 
 const PrivateRoute = ({ roleRequired, element: Component, ...rest }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [role, setRole] = useState(localStorage.getItem("role"));
   const location = useLocation(); // To get the current location for redirection
 
   // Check for token and role in the useEffect hook
   useEffect(() => {
-    if (token && role) {
-      setIsLoading(false); // Stop loading once we have token and role
-    } else {
-      setIsLoading(false); // If no token, stop loading and redirect
-    }
-  }, [token, role]);
+    const storedToken = localStorage.getItem("token");
+    const storedRole = localStorage.getItem("role");
+    
+    setToken(storedToken);  // Set token from localStorage
+    setRole(storedRole);    // Set role from localStorage
+
+    setIsLoading(false);    // Set loading to false after checking
+  }, []);  // Empty dependency array ensures this effect runs only once on mount
 
   // Display a loading spinner or text while checking auth status
   if (isLoading) {

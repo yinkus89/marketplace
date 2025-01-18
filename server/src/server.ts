@@ -16,6 +16,8 @@ import authRoutes from './routes/authRoutes';
 import vendorRoutes from './routes/vendorRoutes';
 import customerRoutes from './routes/customerRoutes';
 import adminRoutes from './routes/adminRoutes'; // Import admin routes
+import storeRoutes from './routes/storeRoutes';
+import reviewRoutes from './routes/reviewRoutes';
 
 dotenv.config();
 
@@ -52,7 +54,8 @@ app.use("/api/auth", authRoutes);  // This will handle both login and register
 app.use("/api/vendors", vendorRoutes);  // Add vendor routes
 app.use("/api/customers", customerRoutes);  // Add customer routes
 app.use("/api/admin", adminRoutes);  // Add admin routes
-
+app.use('/api/stores', storeRoutes);
+app.use('/api/reviews', reviewRoutes);
 // Health Check Route
 app.get('/health', (req, res) => {
   res.status(200).json({ message: "Server is healthy" });

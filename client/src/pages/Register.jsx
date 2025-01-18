@@ -13,33 +13,28 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Basic client-side validation (you can expand this with more checks)
+  
     if (!name || !email || !password) {
       setError("All fields are required!");
       return;
     }
-
-    // Convert role to uppercase to match backend validation
+  
     const normalizedRole = role.toUpperCase();
-
+  
     try {
-      // Assuming you have an API endpoint for user registration
       const response = await axios.post("http://localhost:4001/api/auth/register", {
         name,
         email,
         password,
-        role: normalizedRole,  // Send the uppercase role
+        role: normalizedRole,
       });
-
-      // On successful registration, clear any previous error and show success message
-      setError(null);
+  
+      setError(null);  // Clear any previous errors
       setSuccess("Registration successful!");
-
-      // Optionally, store the role in localStorage (although backend should handle roles)
+  
+      // Store role and redirect user to appropriate page
       localStorage.setItem("role", normalizedRole);
-
-      // Redirect based on the selected role
+  
       if (normalizedRole === "ADMIN") {
         navigate("/admin");
       } else if (normalizedRole === "VENDOR") {
@@ -48,16 +43,29 @@ const Register = () => {
         navigate("/customer/dashboard");
       }
     } catch (err) {
-      // Handle registration errors (e.g., email already in use)
-      setError(err.response ? err.response.data.message : "Something went wrong.");
+      const errorMessage = err.response ? err.response.data.message : "Something went wrong. Please try again.";
+  
+      if (errorMessage.includes("email already in use")) {
+        setError(
+          <div>
+            <div>{errorMessage}</div>
+            <div className="mt-2">
+              <span>Already have an account? </span>
+              <a href="/login" className="text-blue-500 hover:underline">Login here</a>
+            </div>
+          </div>
+        );
+      } else {
+        setError(errorMessage);
+      }
     }
   };
-
+  
   return (
     <div className="register-container min-h-screen flex justify-center items-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-semibold text-center mb-6">Register</h2>
-        
+
         {/* Display success message */}
         {success && <div className="text-green-500 mb-4">{success}</div>}
 

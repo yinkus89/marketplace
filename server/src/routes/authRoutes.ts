@@ -3,13 +3,15 @@ import { body, validationResult } from 'express-validator';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
-import { OAuth2Client } from 'google-auth-library';  // Google OAuth client
+import { OAuth2Client } from 'google-auth-library'; // Google OAuth client
+import nodemailer from 'nodemailer';
+import crypto from 'crypto'; // For generating reset tokens
 import { protectRoute } from "../middlewares/protectRoute"; // Import the protectRoute middleware
 import roleGuard from "../middlewares/roleGuard"; // Import the roleGuard middleware
 
 const prisma = new PrismaClient();
 const router = express.Router();
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '');  // Google Client ID
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || ''); // Google Client ID
 
 // Utility function for role validation (optionally can move it to a separate file)
 const normalizeRole = (role: string): 'ADMIN' | 'CUSTOMER' | 'VENDOR' => {
@@ -31,34 +33,25 @@ router.post(
       .withMessage('Role must be one of: ADMIN, CUSTOMER, VENDOR')
   ],
   async (req: Request, res: Response) => {
-    console.log('Received request body:', req.body); // Log the request body for debugging purposes
-
-    // Normalize role to uppercase
     const { email, name, password, role } = req.body;
-    const normalizedRole = normalizeRole(role); // Use utility function to normalize role
+    const normalizedRole = normalizeRole(role);
 
-    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     try {
-      // Check if the user already exists
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) {
         return res.status(400).json({ message: 'Email already in use' });
       }
 
-      // Hash the password
       const hashedPassword = await bcrypt.hash(password, 12);
-
-      // Create new user in the database
       const newUser = await prisma.user.create({
-        data: { email, name, password: hashedPassword, role: normalizedRole }, // Use the normalized role
+        data: { email, name, password: hashedPassword, role: normalizedRole },
       });
 
-      // Send success response
       res.status(201).json({
         success: true,
         message: 'User registered successfully',
@@ -71,51 +64,122 @@ router.post(
   }
 );
 
+// Forgot Password Route
+router.post('/forgot-password', async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const tokenExpiry = new Date(Date.now() + 3600000); // Token expires in 1 hour
+
+    // Save the reset token and expiry time in the database
+    await prisma.user.update({
+      where: { email },
+      data: { resetToken, tokenExpiry },
+    });
+
+    // Create the reset link
+    const resetUrl = `http://localhost:4001/reset-password/${resetToken}`;
+
+    // Set up the email transporter
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Send the reset link to the user's email
+    const mailOptions = {
+      from: 'YourAppName <yourapp@example.com>',
+      to: email,
+      subject: 'Password Reset Request',
+      html: `<p>You requested a password reset. Click the link below to reset your password:</p>
+             <a href="${resetUrl}">${resetUrl}</a>
+             <p>If you didn't request this, please ignore this email.</p>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: 'Password reset link sent to your email' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Something went wrong, please try again' });
+  }
+});
+
+// Reset Password Route
+router.post('/reset-password/:token', async (req: Request, res: Response) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        tokenExpiry: { gte: new Date() }, // Check if the token is expired
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword, resetToken: null, tokenExpiry: null },
+    });
+
+    res.status(200).json({ message: 'Password reset successful' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Something went wrong, please try again' });
+  }
+});
+
 // Login Route (Standard Login)
 router.post('/login', async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    // Check for missing fields
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    try {
-      // Find the user by email
-      const user = await prisma.user.findUnique({ where: { email } });
-      if (!user) {
-        console.log('User not found:', email);  // Log if user is not found
-        return res.status(400).json({ message: 'Invalid email or password' });
-      }
+    const isMatch = await bcrypt.compare(password, user.password);
 
-      console.log('User found:', user);  // Log the found user details
-
-      // Compare password
-      const isMatch = await bcrypt.compare(password, user.password);
-      console.log('Password match:', isMatch);  // Log the result of the password comparison
-
-      if (!isMatch) {
-        return res.status(400).json({ message: 'Invalid email or password' });
-      }
-
-      // Generate JWT token
-      const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
-      const token = jwt.sign(
-        { userId: user.id, email: user.email, role: user.role },
-        jwtSecret,
-        { expiresIn: '1h' }
-      );
-
-      // Send success response with the token
-      res.status(200).json({
-        success: true,
-        message: 'Login successful',
-        data: { token },
-      });
-    } catch (error) {
-      console.error('Error in login route:', error);
-      res.status(500).json({ message: 'Error logging in' });
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid email or password' });
     }
+
+    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, role: user.role },
+      jwtSecret,
+      { expiresIn: '1h' }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      data: { token },
+    });
+  } catch (error) {
+    console.error('Error in login route:', error);
+    res.status(500).json({ message: 'Error logging in' });
+  }
 });
 
 // Google Login Route
@@ -127,37 +191,33 @@ router.post('/google-login', async (req: Request, res: Response) => {
   }
 
   try {
-    // Verify the token using Google API
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,  // Ensure this matches your Google Client ID
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
-    const { email, name } = payload || {}; // Safely destructure, adding a fallback for payload
+    const { email, name } = payload || {};
 
     if (!email || !name) {
       return res.status(400).json({ message: 'Invalid Google token' });
     }
 
-    // Check if the user already exists in your database
     let user = await prisma.user.findUnique({
       where: { email },
     });
 
-    // If user doesn't exist, create a new one
     if (!user) {
       user = await prisma.user.create({
         data: {
           email,
           name,
-          password: '', // No password needed for Google login
-          role: 'CUSTOMER',  // Default role, adjust if necessary
+          password: '',
+          role: 'CUSTOMER',
         },
       });
     }
 
-    // Create a JWT token for the user
     const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
     const newToken = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
@@ -175,6 +235,9 @@ router.post('/google-login', async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Error logging in with Google' });
   }
 });
+
+
+
 
 // Protected Routes
 // Admin Dashboard

@@ -14,8 +14,8 @@ const Header = () => {
           <Link to="/shop" className="hover:text-gray-300">Shop</Link>
           <Link to="/about" className="hover:text-gray-300">About</Link>
           <Link to="/contact" className="hover:text-gray-300">Contact</Link>
-          <Link to="/register" className="hover:text-gray-300">Signup</Link>
-          <Link to="/logout" className="hover:text-gray-300">Logout</Link>
+          <Link to="/login" className="hover:text-gray-300">Login</Link>
+          
         </nav>
 
         {/* Cart Icon (Removed from here) */}
