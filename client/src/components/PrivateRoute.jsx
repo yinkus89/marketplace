@@ -1,46 +1,46 @@
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
-const PrivateRoute = ({ roleRequired, element: Component, ...rest }) => {
+const PrivateRoute = ({ roleRequired, element, ...rest }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem("token"));
-  const [role, setRole] = useState(localStorage.getItem("role"));
-  const location = useLocation(); // To get the current location for redirection
+  const [token, setToken] = useState(null);
+  const [role, setRole] = useState(null);
+  const location = useLocation(); // Get current location for redirection
 
-  // Check for token and role in the useEffect hook
+  // Check authentication and role on component mount
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedRole = localStorage.getItem("role");
-    
-    setToken(storedToken);  // Set token from localStorage
-    setRole(storedRole);    // Set role from localStorage
 
-    setIsLoading(false);    // Set loading to false after checking
-  }, []);  // Empty dependency array ensures this effect runs only once on mount
+    setToken(storedToken);
+    setRole(storedRole);
+    setIsLoading(false); // Loading complete
+  }, []);
 
-  // Display a loading spinner or text while checking auth status
+  // Show a loading spinner or placeholder during the initial check
   if (isLoading) {
-    return <div>Loading...</div>; // Or use a spinner component here
+    return <div>Loading...</div>; // Replace with a spinner if desired
   }
 
-  // If no token is found, redirect to login
+  // Redirect to login if no token is found
   if (!token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If the user's role doesn't match the required role, redirect accordingly
+  // Redirect to the correct dashboard if role doesn't match
   if (role !== roleRequired) {
-    const redirectPath = {
-      "VENDOR": "/vendor-dashboard",
-      "CUSTOMER": "/customer-dashboard",
-      "ADMIN": "/admin-dashboard",
-    }[role] || "/unauthorized"; // Default to unauthorized if no matching role
+    const redirectPaths = {
+      vendor: "/vendor/dashboard",
+      customer: "/customer/dashboard",
+      admin: "/admin/dashboard",
+    };
+    const redirectPath = redirectPaths[role] || "/unauthorized";
 
     return <Navigate to={redirectPath} replace />;
   }
 
-  // If the user is authorized, render the requested component
-  return <Component {...rest} />;
+  // Render the passed element if authorized
+  return element;
 };
 
 export default PrivateRoute;

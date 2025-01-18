@@ -7,6 +7,7 @@ const CustomerDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);  // State for sidebar
   const navigate = useNavigate();
 
   // Fetch the orders when the component mounts
@@ -51,7 +52,7 @@ const CustomerDashboard = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-64 bg-blue-600 text-white p-6 flex flex-col">
+      <div className={`lg:w-64 w-48 bg-blue-600 text-white p-6 flex flex-col ${sidebarOpen ? 'block' : 'hidden'} lg:block`}>
         <h2 className="text-2xl font-semibold mb-6">Customer Dashboard</h2>
         <Link to="/user/orders" className="mb-4 text-lg hover:text-blue-200">Orders</Link>
         <Link to="/user/settings" className="mb-4 text-lg hover:text-blue-200">Settings</Link>
@@ -63,8 +64,24 @@ const CustomerDashboard = () => {
         </button>
       </div>
 
+      {/* Overlay for mobile view */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black opacity-50 z-10 lg:hidden" 
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
+
       {/* Content Section */}
       <div className="flex-1 p-6 overflow-y-auto">
+        {/* Hamburger Icon for all screens */}
+        <button 
+          className="text-2xl text-blue-600 mb-4"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        >
+          ☰
+        </button>
+
         <div className="mb-6">
           <h1 className="text-3xl font-semibold">Welcome to Your Dashboard</h1>
         </div>
@@ -89,6 +106,9 @@ const CustomerDashboard = () => {
                   <p className="text-lg font-semibold">Order #{order.id}</p>
                   <p className="text-gray-600">{order.shippingAddress}</p>
                   <p className="font-bold">{order.totalAmount} USD</p>
+                  <Link to={`/user/order/${order.id}`} className="text-blue-500 hover:underline">
+                    View Details
+                  </Link>
                 </li>
               ))}
             </ul>

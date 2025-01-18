@@ -1,64 +1,82 @@
-import React, { useEffect, useState } from 'react';
-import AdminSidebar from './AdminSidebar'; // Assuming you have an AdminSidebar component
-import VendorSidebar from './VendorSidebar'; // Assuming you have a VendorSidebar component
-import CustomerSidebar from './CustomerSidebar'; // Assuming you have a CustomerSidebar component
-import AdminDashboard from './AdminDashboard'; // Your Admin Dashboard Component
-import VendorDashboard from './VendorDashboard'; // Your Vendor Dashboard Component
-import CustomerDashboard from './CustomerDashboard'; // Your Customer Dashboard Component
+import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+import AdminSidebar from "./AdminSidebar";
+import VendorSidebar from "./VendorSidebar";
+import CustomerSidebar from "./CustomerSidebar";
+import AdminDashboard from "./AdminDashboard";
+import VendorDashboard from "./VendorDashboard";
+import CustomerDashboard from "./CustomerDashboard";
 
 const DashboardLayout = () => {
-  const [userRole, setUserRole] = useState(null);  // To store user role
+  const [userRole, setUserRole] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Effect to get the user role from localStorage or another source
   useEffect(() => {
-    const role = localStorage.getItem('userRole');  // Assuming role is stored in localStorage
-    if (!role) {
-      // Redirect or show an error if role is not found
-      window.location.href = '/login';  // For example, redirect to login
+    const role = localStorage.getItem("role"); // Get role from localStorage
+    if (role) {
+      setUserRole(role); // Set the user role if it exists
     } else {
-      setUserRole(role);
+      setUserRole(""); // If no role found, set to an empty string (unauthorized)
     }
   }, []);
 
-  // Render the correct dashboard based on the user role
+  const toggleSidebar = () => {
+    setIsSidebarOpen((prevState) => !prevState);
+  };
+
   const renderDashboard = () => {
     switch (userRole) {
-      case 'ADMIN':
+      case "admin":
         return <AdminDashboard />;
-      case 'VENDOR':
+      case "vendor":
         return <VendorDashboard />;
-      case 'CUSTOMER':
+      case "customer":
         return <CustomerDashboard />;
       default:
-        return <p>Unauthorized</p>;
+        return <Navigate to="/login" />;
     }
   };
 
-  // Conditionally render the sidebar based on the user role
   const renderSidebar = () => {
     switch (userRole) {
-      case 'ADMIN':
+      case "admin":
         return <AdminSidebar />;
-      case 'VENDOR':
+      case "vendor":
         return <VendorSidebar />;
-      case 'CUSTOMER':
+      case "customer":
         return <CustomerSidebar />;
       default:
         return null;
     }
   };
 
+  // Show loading state while determining the role
+  if (userRole === null) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="dashboard-layout">
       {/* Sidebar */}
-      <div className="sidebar-container">
+      <div className={`sidebar-container ${isSidebarOpen ? "open" : "closed"}`}>
         {renderSidebar()}
       </div>
 
-      {/* Main Content Section */}
-      <div className="content-container">
-        <nav>Shared Navigation</nav>  {/* Shared navigation */}
-        {renderDashboard()} {/* Render the dashboard content based on user role */}
+      {/* Main Content */}
+      <div
+        className={`content-container ${isSidebarOpen ? "" : "full-width"}`}
+      >
+        <header className="dashboard-header">
+          <button
+            className="hamburger-icon"
+            onClick={toggleSidebar}
+            aria-label="Toggle Sidebar"
+          >
+            ☰
+          </button>
+          <h1>Dashboard</h1>
+        </header>
+        {renderDashboard()}
       </div>
     </div>
   );

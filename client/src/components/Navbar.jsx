@@ -1,7 +1,6 @@
-// src/components/Navbar.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaBars } from 'react-icons/fa';  // Importing the Hamburger Icon from react-icons
+import { FaBars } from 'react-icons/fa'; // Importing the Hamburger Icon from react-icons
 
 const Navbar = ({ toggleSidebar }) => {
   return (
@@ -12,10 +11,10 @@ const Navbar = ({ toggleSidebar }) => {
           Welcome to Marketplace
         </Link>
 
-        {/* Hamburger Icon for Mobile and Desktop Sidebar Toggle */}
+        {/* Hamburger Icon for Sidebar Toggle */}
         <button
           onClick={toggleSidebar}
-          className="text-white text-2xl md:hidden lg:hidden" // Hides it only on large screens (lg+)
+          className="text-white text-2xl" // Always visible
         >
           <FaBars />
         </button>

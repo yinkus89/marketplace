@@ -31,11 +31,11 @@ const Admin = () => {
   }, []);
 
   const handleCustomerAdded = (newCustomer) => {
-    setCustomers((prev) => [...prev, newCustomer]);
+    setCustomers((prev) => [...prev, newCustomer]); // Add new customer to state
   };
 
   const handleStoreAdded = (newStore) => { // Changed from handleVendorAdded
-    setStores((prev) => [...prev, newStore]);
+    setStores((prev) => [...prev, newStore]); // Add new store to state
   };
 
   return (
@@ -53,7 +53,7 @@ const Admin = () => {
 
       {/* Add Customer */}
       <h2>Add Customer</h2>
-      <CustomerForm onCustomerAdded={handleCustomerAdded} />
+      <CustomerForm onCustomerAdded={handleCustomerAdded} /> {/* Pass handler to CustomerForm */}
 
       {/* Add Store (previously Add Vendor) */}
       <h2>Create Store</h2>
@@ -75,6 +75,21 @@ const Admin = () => {
                 <img src={prod.imageUrl} alt={prod.name} width="100" />
               </div>
             ))
+        )}
+      </div>
+
+      {/* List of customers */}
+      <h2>Customer List</h2>
+      <div className="customer-list">
+        {loading ? (
+          <p>Loading customers...</p>
+        ) : (
+          customers.map((customer) => (
+            <div key={customer.id} className="customer-item">
+              <h3>{customer.name}</h3>
+              <p>{customer.email}</p>
+            </div>
+          ))
         )}
       </div>
 

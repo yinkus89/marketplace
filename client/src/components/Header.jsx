@@ -8,15 +8,7 @@ const Header = () => {
         {/* Logo */}
         <Link to="/" className="text-2xl font-bold">Marketplace</Link>
 
-        {/* Navigation Links */}
-        <nav className="space-x-6">
-          <Link to="/" className="hover:text-gray-300">Home</Link>
-          <Link to="/shop" className="hover:text-gray-300">Shop</Link>
-          <Link to="/about" className="hover:text-gray-300">About</Link>
-          <Link to="/contact" className="hover:text-gray-300">Contact</Link>
-          <Link to="/login" className="hover:text-gray-300">Login</Link>
-          
-        </nav>
+        
 
         {/* Cart Icon (Removed from here) */}
         {/* <div>

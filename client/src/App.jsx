@@ -5,7 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Navbar from "./components/Navbar";
+import Navigation from "./components/Navigation";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -34,36 +34,12 @@ import { CartProvider } from "./context/CartContext";
 import DashboardLayout from "./dashboards/DashboardLayout";
 import StoreList from "./components/StoreList";
 import StoreReviews from "./components/StoreReviews";
-
-import "./styles/globalStyles.css";
+import ProfilePage from './components/ProfilePage'; // Import the ProfilePage
+import PrivateRoute from './components/PrivateRoute'; // Import the PrivateRoute component
+import "./styles/globalstyles.css";
 
 // Utility function to get the user role
 const getUserRole = () => localStorage.getItem("role");
-
-// PrivateRoute Component for Role-Based Access
-const PrivateRoute = ({ roleRequired, element }) => {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
-
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (role !== roleRequired) {
-    switch (role) {
-      case "admin":
-        return <Navigate to="/admin/dashboard" replace />;
-      case "vendor":
-        return <Navigate to="/vendor/dashboard" replace />;
-      case "customer":
-        return <Navigate to="/customer/dashboard" replace />;
-      default:
-        return <Navigate to="/login" replace />;
-    }
-  }
-
-  return element;
-};
 
 const App = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -99,7 +75,7 @@ const App = () => {
         <div className="content">
           <MouseMoveEffect />
           <Header />
-          <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+          <Navigation toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
           {isLoading && <Spinner />}
 
@@ -122,46 +98,77 @@ const App = () => {
               <Route path="/new-collection" element={<NewCollection />} />
 
               {/* Role-Based Routes with PrivateRoute */}
-              <Route
-                path="/admin/dashboard"
-                element={
-                  <PrivateRoute
-                    roleRequired="admin"
-                    element={
-                      <DashboardLayout sidebar={<AdminSidebar />}>
-                        <AdminDashboard />
-                      </DashboardLayout>
-                    }
-                  />
-                }
-              />
-              <Route
-                path="/vendor/dashboard"
-                element={
-                  <PrivateRoute
-                    roleRequired="vendor"
-                    element={
-                      <DashboardLayout sidebar={<VendorSidebar />}>
-                        <VendorDashboard />
-                      </DashboardLayout>
-                    }
-                  />
-                }
-              />
-              <Route
-                path="/customer/dashboard"
-                element={
-                  <PrivateRoute
-                    roleRequired="customer"
-                    element={
-                      <DashboardLayout sidebar={<CustomerSidebar />}>
-                        <CustomerDashboard />
-                      </DashboardLayout>
-                    }
-                  />
-                }
-              />
+<Route
+  path="/admin/dashboard"
+  element={
+    <PrivateRoute
+      roleRequired="admin"
+      element={
+        <DashboardLayout sidebar={<AdminSidebar />}>
+          <AdminDashboard />
+        </DashboardLayout>
+      }
+    />
+  }
+/>
+<Route
+  path="/vendor/dashboard"
+  element={
+    <PrivateRoute
+      roleRequired="vendor"
+      element={
+        <DashboardLayout sidebar={<VendorSidebar />}>
+          <VendorDashboard />
+        </DashboardLayout>
+      }
+    />
+  }
+/>
+<Route
+  path="/customer/dashboard"
+  element={
+    <PrivateRoute
+      roleRequired="customer"
+      element={
+        <DashboardLayout sidebar={<CustomerSidebar />}>
+          <CustomerDashboard />
+        </DashboardLayout>
+      }
+    />
+  }
+/>
 
+{/* Profile Routes for Each Role */}
+<Route
+  path="/admin/profile"
+  element={
+    <PrivateRoute
+      roleRequired="admin"
+      element={<ProfilePage role="admin" />}
+    />
+  }
+/>
+<Route
+  path="/vendor/profile"
+  element={
+    <PrivateRoute
+      roleRequired="vendor"
+      element={<ProfilePage role="vendor" />}
+    />
+  }
+/>
+<Route
+  path="/customer/profile"
+  element={
+    <PrivateRoute
+      roleRequired="customer"
+      element={<ProfilePage role="customer" />}
+    />
+  }
+/>
+
+              
+               
               {/* Logout Page */}
               <Route path="/logout" element={<LogoutPage />} />
 

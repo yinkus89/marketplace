@@ -1,27 +1,28 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion"; // Importing framer-motion
 import Sidebar from "./Sidebar";
 import InventoryManagement from "./InventoryManagement";
 import SalesAnalytics from "./SalesAnalytics";
 import OrderManagement from "./OrderManagement";
-import VendorProfile from "./VendorProfile";
-import StoreList from "../components/StoreList"; // Import StoreList
-import CreateStoreForm from "../components/CreateStoreForm"; // Import CreateStoreForm
+import VendorProfile from "../profiles/VendorProfile";
+import StoreList from "../components/StoreList";
+import CreateStoreForm from "../components/CreateStoreForm";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // For API requests
-import Spinner from "../components/Spinner"; // Import a spinner component for loading state
+import axios from "axios";
+import Spinner from "../components/Spinner";
 
 const VendorDashboard = () => {
-  const [activeComponent, setActiveComponent] = useState("inventory"); // Default view
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Authentication state
-  const [loading, setLoading] = useState(true); // Loading state for authentication check
-  const [error, setError] = useState(null); // Error state for authentication
+  const [activeComponent, setActiveComponent] = useState("inventory");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Check authentication status on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
+
     if (!token) {
-      navigate("/login"); // Redirect to login page if no token found
+      navigate("/login");
     } else {
       axios
         .get(`${process.env.REACT_APP_API_URL}/verify-token`, {
@@ -29,65 +30,59 @@ const VendorDashboard = () => {
         })
         .then(() => {
           setIsAuthenticated(true);
-          setLoading(false); // Set loading to false once authentication is successful
+          setLoading(false);
         })
-        .catch(() => {
+        .catch((err) => {
           setIsAuthenticated(false);
-          setLoading(false); // Set loading to false after failed authentication
-          localStorage.removeItem("token"); // Remove invalid token
-          setError("Authentication failed. Please login again.");
-          navigate("/login"); // Redirect to login
+          setLoading(false);
+          localStorage.removeItem("token");
+          setError(err.response?.data?.message || "Authentication failed. Please login again.");
+          navigate("/login");
         });
     }
   }, [navigate]);
 
-  // Logout handler
   const handleLogout = () => {
-    localStorage.removeItem("token"); // Remove the token on logout
-    setIsAuthenticated(false); // Update authentication state
-    navigate("/login"); // Redirect to login page
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+    navigate("/login");
   };
 
-  // Function to render the content based on the active tab
-  const renderContent = () => {
-    switch (activeComponent) {
-      case "inventory":
-        return <InventoryManagement />;
-      case "sales":
-        return <SalesAnalytics />;
-      case "orders":
-        return <OrderManagement />;
-      case "profile":
-        return <VendorProfile />;
-      case "stores":
-        return <StoreList />; // Render StoreList component
-      case "createStore":
-        return <CreateStoreForm />; // Render CreateStoreForm component
-      default:
-        return <InventoryManagement />;
-    }
-  };
+  const renderContent = () => (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+    >
+      {activeComponent === "inventory" && <InventoryManagement />}
+      {activeComponent === "sales" && <SalesAnalytics />}
+      {activeComponent === "orders" && <OrderManagement />}
+      {activeComponent === "profile" && <VendorProfile />}
+      {activeComponent === "stores" && <StoreList />}
+      {activeComponent === "createStore" && <CreateStoreForm />}
+    </motion.div>
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="text-center text-red-500 mt-20">
+        {error || "You are not authenticated. Please login."}
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen">
-      {/* Sidebar */}
-      <Sidebar
-        setActiveComponent={setActiveComponent}
-        handleLogout={handleLogout}
-      />
-
-      {/* Main Content */}
-      <div className="flex-1 p-6 bg-gray-100">
-        {loading ? (
-          <Spinner /> // Show a loading spinner while authentication is being checked
-        ) : isAuthenticated ? (
-          renderContent() // Show content if authenticated
-        ) : (
-          <div className="text-center text-red-500">
-            {error || "You are not authenticated. Please login."}
-          </div>
-        )}
-      </div>
+      <Sidebar setActiveComponent={setActiveComponent} handleLogout={handleLogout} />
+      <div className="flex-1 p-6 bg-gray-100">{renderContent()}</div>
     </div>
   );
 };

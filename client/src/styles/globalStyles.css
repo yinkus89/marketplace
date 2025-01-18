@@ -1,14 +1,27 @@
-/* Global body styles */
+/* Global CSS Variables */
+:root {
+  --primary-bg: #203652;
+  --secondary-bg: #2c3e50;
+  --accent-color: #3498db;
+  --font-color: #ecf0f1;
+  --font-color-dark: #555;
+  --white: #fff;
+  --light-gray: #f4f4f4;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --shadow-dark: rgba(0, 0, 0, 0.2);
+}
+
+/* Body Styles */
 body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
   height: 100%; /* Full viewport height */
   overflow: auto; /* Enable scrolling */
-  background-color: #203652; /* Fallback background color */
+  background-color: var(--primary-bg); /* Fallback background color */
 }
 
-/* Main container (flex layout for dashboards) */
+/* Main Container (flex layout for dashboards) */
 .main-container {
   display: flex; /* Side-by-side layout for sidebar and content */
   position: relative;
@@ -16,35 +29,31 @@ body {
   width: 100%;
 }
 
-/* 3D rotating background */
+/* 3D Rotating Background */
+@keyframes rotate {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+
 .background-3d {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(120deg, #4f76a1, #203652); /* Gradient background */
+  background: linear-gradient(120deg, var(--accent-color), var(--primary-bg));
   transform-style: preserve-3d;
   animation: rotate 60s infinite linear;
   z-index: -1; /* Behind other content */
 }
 
-@keyframes rotate {
-  0% {
-    transform: rotateY(0deg);
-  }
-  100% {
-    transform: rotateY(360deg);
-  }
-}
-
-/* Header styles */
+/* Header Styles */
 .header {
-  background-color: #2c3e50;
-  color: white;
+  background-color: var(--secondary-bg);
+  color: var(--font-color);
   padding: 15px 30px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .header h1 {
@@ -53,25 +62,33 @@ body {
   font-weight: bold;
 }
 
-/* Sidebar styles */
-.sidebar {
+/* Sidebar Styles */
+.sidebar,
+.dashboard-sidebar,
+.sidebar-container {
   width: 250px;
-  background-color: #2c3e50;
-  color: white;
-  padding: 20px;
+  transition: transform 0.3s ease;
+  background-color: var(--secondary-bg);
+  color: var(--font-color);
   position: fixed;
   top: 0;
   left: 0;
   height: 100%;
+  padding: 20px;
   overflow-y: auto;
   z-index: 1;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease-in-out;
+  box-shadow: 2px 0 5px var(--shadow);
 }
 
-/* Sidebar open state */
-.sidebar.open {
+.sidebar.closed,
+.dashboard-sidebar.closed,
+.sidebar-container.closed {
+  transform: translateX(-100%);
+}
+
+.sidebar.open,
+.dashboard-sidebar.open,
+.sidebar-container.open {
   transform: translateX(0);
 }
 
@@ -91,37 +108,38 @@ body {
 }
 
 .category-link {
-  color: #ecf0f1;
+  color: var(--font-color);
   text-decoration: none;
   font-weight: bold;
 }
 
-.category-link:hover {
-  color: #3498db;
+.category-link:hover,
+.category-link:focus {
+  color: var(--accent-color);
+  outline: 3px solid var(--accent-color); /* Highlight focused elements */
 }
 
 .category-description {
-  display: block;
   font-size: 0.9rem;
   color: #bdc3c7;
   margin-top: 5px;
 }
 
-/* Content section */
+/* Content Section */
 .content {
   margin-left: 270px;
   padding: 20px;
-  background-color: #ecf0f1;
+  background-color: var(--white);
   height: 100%;
   overflow-y: auto;
 }
 
-/* Card styles for both user and admin dashboards */
+/* Card Styles for Both User and Admin Dashboards */
 .card {
-  background-color: white;
+  background-color: var(--white);
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px var(--shadow);
   margin-bottom: 20px;
 }
 
@@ -131,7 +149,7 @@ body {
 }
 
 .card p {
-  color: #555;
+  color: var(--font-color-dark);
 }
 
 /* Register Page */
@@ -143,15 +161,7 @@ body {
 }
 
 .register-page .background-3d {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(120deg, #4f76a1, #203652);
-  transform-style: preserve-3d;
   animation: rotate 20s infinite linear;
-  z-index: -1;
 }
 
 .register-page .content {
@@ -160,15 +170,15 @@ body {
   padding: 2rem;
   background: rgba(0, 0, 0, 0.5);
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px var(--shadow);
 }
 
 /* New Collection Item Styles */
 .new-collection-item {
-  background-color: #fff;
+  background-color: var(--white);
   padding: 15px;
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px var(--shadow);
   width: 200px;
   height: 300px;
   display: flex;
@@ -176,11 +186,12 @@ body {
   justify-content: space-between;
   align-items: center;
   transform: perspective(500px) rotateY(0deg); /* 3D rotation for items */
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .new-collection-item:hover {
   transform: rotateY(15deg); /* Hover effect for rotation */
+  box-shadow: 0 6px 12px var(--shadow-dark);
 }
 
 .new-collection-item img {
@@ -206,12 +217,11 @@ body {
 
 /* Responsive Sidebar for Mobile */
 @media screen and (max-width: 768px) {
-  .sidebar {
+  .sidebar,
+  .sidebar-container {
     width: 100%;
-    height: auto;
     position: relative;
     transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
   }
 
   .content {
@@ -221,7 +231,7 @@ body {
 
   .sidebar-btn {
     display: block;
-    background-color: #2c3e50;
+    background-color: var(--secondary-bg);
     color: rgb(214, 209, 209);
     font-size: 1.2rem;
     padding: 10px;
@@ -229,7 +239,7 @@ body {
   }
 }
 
-/* Navbar responsiveness */
+/* Navbar Responsiveness */
 .navbar-content {
   display: flex;
   justify-content: space-between;
@@ -255,13 +265,13 @@ body {
 /* Accessibility: Focus state for interactive elements */
 .category-link:focus,
 .submit-btn:focus {
-  outline: 3px solid #3498db; /* Highlight focused buttons */
+  outline: 3px solid var(--accent-color); /* Highlight focused buttons */
 }
 
 /* Mobile Navigation Button (hamburger icon) */
 .hamburger-menu {
   display: block;
-  color: white;
+  color: var(--font-color);
   font-size: 2rem;
   background: none;
   border: none;
@@ -284,16 +294,56 @@ body {
   width: 80px;
   height: 80px;
   border: 8px solid #f3f3f3;
-  border-top: 8px solid #3498db;
+  border-top: 8px solid var(--accent-color);
   border-radius: 50%;
   animation: lds-dual-ring 1.2s linear infinite;
 }
 
 @keyframes lds-dual-ring {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Dashboard Sidebar Styles */
+.dashboard-sidebar {
+  width: 250px;
+  transition: transform 0.3s ease;
+  transform: translateX(-100%);
+}
+
+.dashboard-sidebar.open {
+  transform: translateX(0);
+}
+
+.dashboard-sidebar.closed {
+  transform: translateX(-100%);
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: var(--light-gray);
+  border-bottom: 1px solid #ddd;
+}
+
+.hamburger-icon {
+  font-size: 20px;
+  margin-right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar-container {
+  width: 250px;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-container.closed {
+  transform: translateX(-100%);
+}
+
+.sidebar-container.open {
+  transform: translateX(0);
 }
