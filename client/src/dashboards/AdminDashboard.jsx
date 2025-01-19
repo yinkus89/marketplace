@@ -1,30 +1,32 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios"; // Import axios for data fetching
-import { useNavigate } from "react-router-dom"; // For navigation
-import { io } from "socket.io-client"; // For Socket.IO real-time updates
-import Spinner from "../components/Spinner";  // Assuming you have a Spinner component for loading state
+import axios from "axios"; 
+import { useNavigate } from "react-router-dom"; 
+import { io } from "socket.io-client"; 
+import AdminSidebar from "../dashboards/AdminSidebar"; 
+import Spinner from "../components/Spinner"; 
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState("products");
+  const [activeTab, setActiveTab] = useState("products");  // Track the active tab
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [users, setUsers] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(false); // Loading state for fetching data
-  const [error, setError] = useState(null); // Error state for data fetching
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Toggle sidebar visibility on mobile
   const navigate = useNavigate();
 
-  // UseEffect to handle authentication check
+  // Authentication check
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      navigate("/admin/login"); // Redirect to login page if not authenticated
+      navigate("/admin/login");
     }
   }, [navigate]);
 
-  // Function to fetch data based on selected tab
+  // Fetch data based on the selected tab
   const fetchData = async (tab) => {
-    setLoading(true); // Set loading to true before making the request
+    setLoading(true);
     try {
       if (tab === "products") {
         const response = await axios.get(`${process.env.REACT_APP_API_URL}/products`);
@@ -43,20 +45,17 @@ const AdminDashboard = () => {
       setError("Error fetching data. Please try again later.");
       console.error("Error fetching data:", error);
     } finally {
-      setLoading(false); // Set loading to false after the request
+      setLoading(false);
     }
   };
 
-  // Effect to fetch data when the active tab changes
   useEffect(() => {
     fetchData(activeTab);
   }, [activeTab]);
 
-  // Setting up real-time updates for products using Socket.IO
+  // Real-time updates with Socket.IO
   useEffect(() => {
-    const socket = io("http://localhost:4001"); // Your socket server URL
-
-    // Listen for product updates
+    const socket = io("http://localhost:4001");
     socket.on("productUpdated", (updatedProduct) => {
       setProducts((prevProducts) => {
         const index = prevProducts.findIndex((prod) => prod.id === updatedProduct.id);
@@ -64,31 +63,27 @@ const AdminDashboard = () => {
           prevProducts[index] = updatedProduct;
           return [...prevProducts];
         } else {
-          return [...prevProducts, updatedProduct]; // Add new product if not present
+          return [...prevProducts, updatedProduct];
         }
       });
     });
 
-    // Cleanup the socket connection on component unmount
     return () => {
       socket.disconnect();
     };
   }, []);
 
-  // Function to render the active tab's content
+  // Function to render content based on the active tab
   const renderContent = () => {
     if (loading) {
-      return <Spinner />; // Display loading spinner while loading
+      return <Spinner />;
     }
 
     if (error) {
       return (
         <div className="text-center text-red-500">
           <p>{error}</p>
-          <button 
-            onClick={() => fetchData(activeTab)} 
-            className="bg-blue-600 text-white py-2 px-4 rounded-md mt-4"
-          >
+          <button onClick={() => fetchData(activeTab)} className="bg-blue-600 text-white py-2 px-4 rounded-md mt-4">
             Retry
           </button>
         </div>
@@ -100,44 +95,28 @@ const AdminDashboard = () => {
         return (
           <div>
             <h2>Manage Products</h2>
-            <ul>
-              {products.map((product) => (
-                <li key={product.id}>{product.name}</li>
-              ))}
-            </ul>
+            <ul>{products.map((product) => <li key={product.id}>{product.name}</li>)}</ul>
           </div>
         );
       case "categories":
         return (
           <div>
             <h2>Manage Categories</h2>
-            <ul>
-              {categories.map((category) => (
-                <li key={category.id}>{category.name}</li>
-              ))}
-            </ul>
+            <ul>{categories.map((category) => <li key={category.id}>{category.name}</li>)}</ul>
           </div>
         );
       case "users":
         return (
           <div>
             <h2>Manage Users</h2>
-            <ul>
-              {users.map((user) => (
-                <li key={user.id}>{user.email}</li>
-              ))}
-            </ul>
+            <ul>{users.map((user) => <li key={user.id}>{user.email}</li>)}</ul>
           </div>
         );
       case "orders":
         return (
           <div>
             <h2>Manage Orders</h2>
-            <ul>
-              {orders.map((order) => (
-                <li key={order.id}>{order.shippingAddress}</li>
-              ))}
-            </ul>
+            <ul>{orders.map((order) => <li key={order.id}>{order.shippingAddress}</li>)}</ul>
           </div>
         );
       default:
@@ -147,56 +126,30 @@ const AdminDashboard = () => {
 
   // Logout function
   const handleLogout = () => {
-    localStorage.removeItem("token"); // Remove token from localStorage
-    navigate("/admin/login"); // Redirect to login page
+    localStorage.removeItem("token");
+    navigate("/admin/login");
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar Navigation */}
-      <div className="w-64 bg-blue-600 text-white p-4 flex flex-col">
-        <h2 className="text-xl font-semibold mb-6">Admin Dashboard</h2>
-        <ul className="space-y-4">
-          <li
-            className={`cursor-pointer p-2 rounded-md ${activeTab === "products" ? "bg-blue-700 text-white" : "hover:bg-blue-700"}`}
-            onClick={() => setActiveTab("products")}
-          >
-            Products
-          </li>
-          <li
-            className={`cursor-pointer p-2 rounded-md ${activeTab === "categories" ? "bg-blue-700 text-white" : "hover:bg-blue-700"}`}
-            onClick={() => setActiveTab("categories")}
-          >
-            Categories
-          </li>
-          <li
-            className={`cursor-pointer p-2 rounded-md ${activeTab === "users" ? "bg-blue-700 text-white" : "hover:bg-blue-700"}`}
-            onClick={() => setActiveTab("users")}
-          >
-            Users
-          </li>
-          <li
-            className={`cursor-pointer p-2 rounded-md ${activeTab === "orders" ? "bg-blue-700 text-white" : "hover:bg-blue-700"}`}
-            onClick={() => setActiveTab("orders")}
-          >
-            Orders
-          </li>
-          <li>
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 p-2 rounded-md w-full mt-6"
-            >
-              Logout
-            </button>
-          </li>
-        </ul>
-      </div>
+      {/* Hamburger Button */}
+      <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-4 text-blue-600">
+        ☰
+      </button>
+
+      {/* Admin Sidebar */}
+      <AdminSidebar setActiveTab={setActiveTab} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Content Section */}
       <div className="flex-1 p-6 overflow-y-auto">
         <h1 className="text-2xl font-semibold mb-6">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h1>
         {renderContent()}
       </div>
+
+      {/* Logout Button */}
+      <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-md w-full mt-6">
+        Logout
+      </button>
     </div>
   );
 };

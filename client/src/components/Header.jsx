@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const Header = () => {
   return (
@@ -8,15 +9,17 @@ const Header = () => {
         {/* Logo */}
         <Link to="/" className="text-2xl font-bold">Marketplace</Link>
 
-        
-
-        {/* Cart Icon (Removed from here) */}
-        {/* <div>
-          <Link to="/cart" className="flex items-center space-x-2 hover:text-gray-300">
-            <span className="material-icons"></span>
-            <span>Cart</span>
+        {/* Profile and Logout Links */}
+        <div className="flex items-center space-x-4">
+          <Link 
+            to="/profile" 
+            className="flex items-center space-x-2 text-lg font-medium hover:text-gray-300"
+          >
+            <i className="fas fa-user"></i>
+            <span>Profile</span>
           </Link>
-        </div> */}
+          
+        </div>
       </div>
     </header>
   );

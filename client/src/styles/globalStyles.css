@@ -18,7 +18,7 @@ body {
   font-family: Arial, sans-serif;
   height: 100%; /* Full viewport height */
   overflow: auto; /* Enable scrolling */
-  background-color: var(--primary-bg); /* Fallback background color */
+  background-color: var(--primary-bg);
 }
 
 /* Main Container (flex layout for dashboards) */
@@ -44,7 +44,7 @@ body {
   background: linear-gradient(120deg, var(--accent-color), var(--primary-bg));
   transform-style: preserve-3d;
   animation: rotate 60s infinite linear;
-  z-index: -1; /* Behind other content */
+  z-index: -1;
 }
 
 /* Header Styles */
@@ -63,9 +63,7 @@ body {
 }
 
 /* Sidebar Styles */
-.sidebar,
-.dashboard-sidebar,
-.sidebar-container {
+.sidebar, .dashboard-sidebar, .sidebar-container {
   width: 250px;
   transition: transform 0.3s ease;
   background-color: var(--secondary-bg);
@@ -80,23 +78,22 @@ body {
   box-shadow: 2px 0 5px var(--shadow);
 }
 
-.sidebar.closed,
-.dashboard-sidebar.closed,
-.sidebar-container.closed {
+/* Sidebar State (Closed/Opened) */
+.sidebar.closed, .dashboard-sidebar.closed, .sidebar-container.closed {
   transform: translateX(-100%);
 }
 
-.sidebar.open,
-.dashboard-sidebar.open,
-.sidebar-container.open {
+.sidebar.open, .dashboard-sidebar.open, .sidebar-container.open {
   transform: translateX(0);
 }
 
+/* Sidebar Header */
 .sidebar h2 {
   font-size: 1.5rem;
   margin-bottom: 20px;
 }
 
+/* Category List in Sidebar */
 .category-list {
   list-style: none;
   padding: 0;
@@ -134,7 +131,7 @@ body {
   overflow-y: auto;
 }
 
-/* Card Styles for Both User and Admin Dashboards */
+/* Card Styles */
 .card {
   background-color: var(--white);
   padding: 20px;
@@ -190,7 +187,7 @@ body {
 }
 
 .new-collection-item:hover {
-  transform: rotateY(15deg); /* Hover effect for rotation */
+  transform: rotateY(15deg);
   box-shadow: 0 6px 12px var(--shadow-dark);
 }
 
@@ -217,8 +214,7 @@ body {
 
 /* Responsive Sidebar for Mobile */
 @media screen and (max-width: 768px) {
-  .sidebar,
-  .sidebar-container {
+  .sidebar, .sidebar-container {
     width: 100%;
     position: relative;
     transform: translateX(-100%);
@@ -265,7 +261,7 @@ body {
 /* Accessibility: Focus state for interactive elements */
 .category-link:focus,
 .submit-btn:focus {
-  outline: 3px solid var(--accent-color); /* Highlight focused buttons */
+  outline: 3px solid var(--accent-color);
 }
 
 /* Mobile Navigation Button (hamburger icon) */
@@ -282,6 +278,7 @@ body {
   outline: none;
 }
 
+/* Loading Spinner */
 .spinner {
   display: flex;
   justify-content: center;
@@ -333,17 +330,4 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-}
-
-.sidebar-container {
-  width: 250px;
-  transition: transform 0.3s ease;
-}
-
-.sidebar-container.closed {
-  transform: translateX(-100%);
-}
-
-.sidebar-container.open {
-  transform: translateX(0);
 }

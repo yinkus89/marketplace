@@ -1,6 +1,5 @@
-// VendorSidebar.js
 import React from 'react';
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { NavLink } from 'react-router-dom'; // Import NavLink for active styles
 
 const VendorSidebar = ({ setActiveComponent, handleLogout }) => {
   return (
@@ -8,32 +7,44 @@ const VendorSidebar = ({ setActiveComponent, handleLogout }) => {
       <h2 className="text-2xl p-4">Vendor Dashboard</h2>
       <ul>
         <li>
-          <Link to="/vendor/inventory">
-            <div className="block p-4 hover:bg-gray-700 cursor-pointer">
-              Inventory Management
-            </div>
-          </Link>
+          <NavLink
+            to="/vendor/inventory"
+            className={({ isActive }) =>
+              `block p-4 hover:bg-gray-700 cursor-pointer ${isActive ? 'bg-gray-600' : ''}`
+            }
+          >
+            Inventory Management
+          </NavLink>
         </li>
         <li>
-          <Link to="/vendor/sales">
-            <div className="block p-4 hover:bg-gray-700 cursor-pointer">
-              Sales Analytics
-            </div>
-          </Link>
+          <NavLink
+            to="/vendor/sales"
+            className={({ isActive }) =>
+              `block p-4 hover:bg-gray-700 cursor-pointer ${isActive ? 'bg-gray-600' : ''}`
+            }
+          >
+            Sales Analytics
+          </NavLink>
         </li>
         <li>
-          <Link to="/vendor/orders">
-            <div className="block p-4 hover:bg-gray-700 cursor-pointer">
-              Order Management
-            </div>
-          </Link>
+          <NavLink
+            to="/vendor/orders"
+            className={({ isActive }) =>
+              `block p-4 hover:bg-gray-700 cursor-pointer ${isActive ? 'bg-gray-600' : ''}`
+            }
+          >
+            Order Management
+          </NavLink>
         </li>
         <li>
-          <Link to="/vendor/profile">
-            <div className="block p-4 hover:bg-gray-700 cursor-pointer">
-              Vendor Profile
-            </div>
-          </Link>
+          <NavLink
+            to="/vendor/profile"
+            className={({ isActive }) =>
+              `block p-4 hover:bg-gray-700 cursor-pointer ${isActive ? 'bg-gray-600' : ''}`
+            }
+          >
+            Vendor Profile
+          </NavLink>
         </li>
         <li>
           <button

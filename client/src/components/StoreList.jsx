@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/apiClient"; // Adjust the path as needed
-import StoreReviews from "./StoreReviews"; // Import the StoreReviews component
+import StoreReviews from "../components/StoreReviews"; // Import the StoreReviews component
 
 const StoreList = () => {
   const [stores, setStores] = useState([]);

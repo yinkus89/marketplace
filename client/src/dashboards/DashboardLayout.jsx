@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import AdminSidebar from "./AdminSidebar";
-import VendorSidebar from "./VendorSidebar";
-import CustomerSidebar from "./CustomerSidebar";
-import AdminDashboard from "./AdminDashboard";
-import VendorDashboard from "./VendorDashboard";
-import CustomerDashboard from "./CustomerDashboard";
+import AdminSidebar from "./AdminSidebar"; // Corrected path
+import VendorSidebar from "./VendorSidebar"; // Corrected path
+import CustomerSidebar from "./CustomerSidebar"; // Corrected path
+import AdminDashboard from "../dashboards/AdminDashboard";
+import VendorDashboard from "../dashboards/VendorDashboard";
+import CustomerDashboard from "../dashboards/CustomerDashboard";
 
 const DashboardLayout = () => {
   const [userRole, setUserRole] = useState(null);
@@ -63,9 +63,7 @@ const DashboardLayout = () => {
       </div>
 
       {/* Main Content */}
-      <div
-        className={`content-container ${isSidebarOpen ? "" : "full-width"}`}
-      >
+      <div className={`content-container ${isSidebarOpen ? "" : "full-width"}`}>
         <header className="dashboard-header">
           <button
             className="hamburger-icon"

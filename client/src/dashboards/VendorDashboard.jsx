@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion"; // Importing framer-motion
-import Sidebar from "./Sidebar";
+import VendorSidebar from "./VendorSidebar";
 import InventoryManagement from "./InventoryManagement";
 import SalesAnalytics from "./SalesAnalytics";
 import OrderManagement from "./OrderManagement";
@@ -36,7 +36,10 @@ const VendorDashboard = () => {
           setIsAuthenticated(false);
           setLoading(false);
           localStorage.removeItem("token");
-          setError(err.response?.data?.message || "Authentication failed. Please login again.");
+          setError(
+            err.response?.data?.message ||
+              "Authentication failed. Please login again."
+          );
           navigate("/login");
         });
     }
@@ -81,7 +84,10 @@ const VendorDashboard = () => {
 
   return (
     <div className="flex h-screen">
-      <Sidebar setActiveComponent={setActiveComponent} handleLogout={handleLogout} />
+      <VendorSidebar
+        setActiveComponent={setActiveComponent}
+        handleLogout={handleLogout}
+      />
       <div className="flex-1 p-6 bg-gray-100">{renderContent()}</div>
     </div>
   );

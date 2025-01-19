@@ -1,18 +1,12 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { globalNavigate } from '../utils/globalNavigation';
 
-// Import the global navigation utility
-import { globalNavigate } from "../utils/globalNavigation";
-
-const Navigation = ({ toggleSidebar }) => {
-  const handleLinkClick = (url) => {
-    // Using the globalNavigate function for navigation
-    globalNavigate(url);
-  };
+const Navigation = ({ toggleSidebar, isAuthenticated, roles }) => {
+  const navigate = useNavigate();
 
   return (
-    <nav className="navbar flex justify-between items-center p-4 bg-gray-900 text-white shadow-lg rounded-lg">
-      {/* Left Section (Logo and Sidebar Toggle) */}
+    <nav className="navbar flex justify-between items-center p-4 bg-gray-800 text-white">
       <div className="navbar-left flex items-center space-x-4">
         <button 
           className="sidebar-toggle p-2 text-white bg-gray-700 rounded-full hover:bg-gray-600 transform hover:scale-110 transition-all"
@@ -22,7 +16,6 @@ const Navigation = ({ toggleSidebar }) => {
         </button>
         <Link 
           to="/" 
-          onClick={(e) => { e.preventDefault(); handleLinkClick('/'); }} 
           className="logo text-3xl font-bold text-yellow-400 transform hover:scale-110 hover:rotate-6 transition-all"
         >
           MyShop
@@ -36,7 +29,6 @@ const Navigation = ({ toggleSidebar }) => {
           <li>
             <Link 
               to="/" 
-              onClick={(e) => { e.preventDefault(); handleLinkClick('/'); }} 
               className="text-lg hover:text-yellow-400 transform hover:scale-110 transition-all"
             >
               Home
@@ -45,7 +37,6 @@ const Navigation = ({ toggleSidebar }) => {
           <li>
             <Link 
               to="/shop" 
-              onClick={(e) => { e.preventDefault(); handleLinkClick('/shop'); }} 
               className="text-lg hover:text-yellow-400 transform hover:scale-110 transition-all"
             >
               Shop
@@ -54,7 +45,6 @@ const Navigation = ({ toggleSidebar }) => {
           <li>
             <Link 
               to="/about" 
-              onClick={(e) => { e.preventDefault(); handleLinkClick('/about'); }} 
               className="text-lg hover:text-yellow-400 transform hover:scale-110 transition-all"
             >
               About
@@ -63,7 +53,6 @@ const Navigation = ({ toggleSidebar }) => {
           <li>
             <Link 
               to="/contact" 
-              onClick={(e) => { e.preventDefault(); handleLinkClick('/contact'); }} 
               className="text-lg hover:text-yellow-400 transform hover:scale-110 transition-all"
             >
               Contact
@@ -71,39 +60,41 @@ const Navigation = ({ toggleSidebar }) => {
           </li>
 
           {/* Role-Specific Routes */}
-          <li>
-            <Link 
-              to="/admin/dashboard" 
-              onClick={(e) => { e.preventDefault(); handleLinkClick('/admin/dashboard'); }} 
-              className="text-lg hover:text-yellow-400 transform hover:scale-110 transition-all"
-            >
-              Admin Dashboard
-            </Link>
-          </li>
-          <li>
-            <Link 
-              to="/vendor/dashboard" 
-              onClick={(e) => { e.preventDefault(); handleLinkClick('/vendor/dashboard'); }} 
-              className="text-lg hover:text-yellow-400 transform hover:scale-110 transition-all"
-            >
-              Vendor Dashboard
-            </Link>
-          </li>
-          <li>
-            <Link 
-              to="/customer/dashboard" 
-              onClick={(e) => { e.preventDefault(); handleLinkClick('/customer/dashboard'); }} 
-              className="text-lg hover:text-yellow-400 transform hover:scale-110 transition-all"
-            >
-              Customer Dashboard
-            </Link>
-          </li>
+          {isAuthenticated && roles.includes('admin') && (
+            <li>
+              <Link 
+                to="/admin/dashboard" 
+                className="text-lg hover:text-yellow-400 transform hover:scale-110 transition-all"
+              >
+                Admin Dashboard
+              </Link>
+            </li>
+          )}
+          {isAuthenticated && roles.includes('vendor') && (
+            <li>
+              <Link 
+                to="/vendor/dashboard" 
+                className="text-lg hover:text-yellow-400 transform hover:scale-110 transition-all"
+              >
+                Vendor Dashboard
+              </Link>
+            </li>
+          )}
+          {isAuthenticated && roles.includes('customer') && (
+            <li>
+              <Link 
+                to="/customer/dashboard" 
+                className="text-lg hover:text-yellow-400 transform hover:scale-110 transition-all"
+              >
+                Customer Dashboard
+              </Link>
+            </li>
+          )}
 
           {/* Cart */}
           <li>
             <Link 
               to="/cart" 
-              onClick={(e) => { e.preventDefault(); handleLinkClick('/cart'); }} 
               className="text-lg hover:text-yellow-400 transform hover:scale-110 transition-all"
             >
               Cart
@@ -114,12 +105,21 @@ const Navigation = ({ toggleSidebar }) => {
 
       {/* Right Section (Login Button) */}
       <div className="navbar-right">
-        <button 
-          onClick={() => handleLinkClick("/login")} 
-          className="login-btn px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transform hover:scale-110 transition-all"
-        >
-          Login
-        </button>
+        {!isAuthenticated ? (
+          <button 
+            onClick={() => globalNavigate(navigate, "/login")} 
+            className="login-btn px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transform hover:scale-110 transition-all"
+          >
+            Login
+          </button>
+        ) : (
+          <button 
+            onClick={() => globalNavigate(navigate, "/logout")} 
+            className="login-btn px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transform hover:scale-110 transition-all"
+          >
+            Logout
+          </button>
+        )}
       </div>
     </nav>
   );

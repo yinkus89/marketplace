@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import AdminProfile from '../profiles/AdminProfile';
 import VendorProfile from '../profiles/VendorProfile';
 import CustomerProfile from '../profiles/CustomerProfile';
 
 const ProfilePage = () => {
   const [userRole, setUserRole] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
     if (!role) {
       // Redirect to login if the user role is not found
-      window.location.href = '/login';
+      navigate('/login');
     } else {
       setUserRole(role);
     }
-  }, []);
+  }, [navigate]);
 
   if (!userRole) return <div>Loading...</div>;
 

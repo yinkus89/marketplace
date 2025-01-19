@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';  // Import axios for API requests
-import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
 import ClipLoader from "react-spinners/ClipLoader"; // Import the loader
+import CustomerSidebar from '../dashboards/CustomerSidebar'; // Import the sidebar component
 
 const CustomerDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -51,18 +52,8 @@ const CustomerDashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className={`lg:w-64 w-48 bg-blue-600 text-white p-6 flex flex-col ${sidebarOpen ? 'block' : 'hidden'} lg:block`}>
-        <h2 className="text-2xl font-semibold mb-6">Customer Dashboard</h2>
-        <Link to="/user/orders" className="mb-4 text-lg hover:text-blue-200">Orders</Link>
-        <Link to="/user/settings" className="mb-4 text-lg hover:text-blue-200">Settings</Link>
-        <button 
-          onClick={handleLogout} 
-          className="mt-auto bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md w-full"
-        >
-          Logout
-        </button>
-      </div>
+      {/* Sidebar Component */}
+      <CustomerSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Overlay for mobile view */}
       {sidebarOpen && (
@@ -76,7 +67,7 @@ const CustomerDashboard = () => {
       <div className="flex-1 p-6 overflow-y-auto">
         {/* Hamburger Icon for all screens */}
         <button 
-          className="text-2xl text-blue-600 mb-4"
+          className="text-2xl text-blue-600 mb-4 lg:hidden"
           onClick={() => setSidebarOpen(!sidebarOpen)}
         >
           ☰

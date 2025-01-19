@@ -1,70 +1,83 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // For navigation
 
-const Sidebar = ({ onCategorySelect, isSidebarOpen, toggleSidebar }) => {
-  const categories = [
-    { name: "Electronics", description: "Devices and gadgets" },
-    { name: "Clothing", description: "Apparel and accessories" },
-    { name: "Home & Kitchen", description: "Furniture and kitchen appliances" },
-    { name: "Sports", description: "Sports equipment and gear" },
-    { name: "Toys", description: "Toys for children" },
-    { name: "Books", description: "Books of all genres" },
-    { name: "Beauty", description: "Beauty products and skincare" },
-    { name: "Furniture", description: "Furniture for home and office" },
-    { name: "Food & Beverage", description: "Groceries and beverages" },
-    { name: "Automotive", description: "Automobile parts and accessories" },
-    { name: "Health", description: "Health and wellness products" },
-    { name: "Gaming", description: "Gaming consoles and accessories" },
-    { name: "Music", description: "Musical instruments and accessories" },
-    { name: "Photography", description: "Cameras and photography equipment" },
-    { name: "Office Supplies", description: "Office equipment and supplies" },
-    { name: "Jewelry", description: "Gold, silver, and precious jewelry" },
-    { name: "Pet Supplies", description: "Products for pets" },
-    { name: "Garden", description: "Gardening tools and accessories" },
-    { name: "Travel", description: "Travel accessories and luggage" },
-    { name: "Gift Cards", description: "Gift cards for various brands" },
-  ];
+const Sidebar = ({ handleLogout }) => {
+  const [userRole, setUserRole] = useState(''); // Store role of the logged-in user
 
-  return (
-    <div
-      className={`sidebar bg-gray-800 text-white p-4 shadow-lg rounded-lg fixed left-0 top-0 h-full z-10 transform transition-all duration-300 ease-in-out ${
-        isSidebarOpen
-          ? "translate-x-0" // Visible when the sidebar is open
-          : "lg:translate-x-0 -translate-x-full" // On desktop (lg:), sidebar is always visible; on mobile, it slides out
-      }`}
-    >
-      <h2 className="text-2xl font-semibold mb-6 text-center">Categories</h2>
+  // Retrieve user role from localStorage or state
+  useEffect(() => {
+    const role = localStorage.getItem('userRole'); // Assume role is saved in localStorage
+    setUserRole(role);
+  }, []);
 
-      {/* Close button */}
-      <button
-        onClick={toggleSidebar}
-        className="text-white mb-4 p-2 rounded bg-blue-500 hover:bg-blue-400 transition absolute top-4 right-4 sm:hidden"
-      >
-        Close
-      </button>
-
-      <ul>
-        {categories.map((category) => (
-          <li key={category.name} className="mb-4">
-            <Link
-              to={`/shop/${category.name
-                .toLowerCase()
-                .replace(/ & /g, "-")
-                .replace(/ /g, "-")}`}
-              onClick={() => {
-                onCategorySelect(category.name); // Set selected category
-                toggleSidebar(); // Close sidebar after category selection
-              }}
-              className="block text-lg font-medium hover:text-blue-400 transition duration-300"
-            >
-              {category.name}
-            </Link>
-            <p className="text-xs text-gray-400 mt-1">{category.description}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
+  // Common sidebar content for all roles
+  const commonSidebar = (
+    <ul>
+      <li>
+        <button onClick={handleLogout} className="block py-2 px-4 w-full text-left rounded-md hover:bg-gray-700">
+          Logout
+        </button>
+      </li>
+    </ul>
   );
+
+  // Sidebar content for Admin
+  const adminSidebar = (
+    <>
+      <h2 className="text-2xl p-4">Admin Dashboard</h2>
+      <ul>
+        <li><Link to="/admin/products" className="block p-4 hover:bg-gray-700">Products</Link></li>
+        <li><Link to="/admin/categories" className="block p-4 hover:bg-gray-700">Categories</Link></li>
+        <li><Link to="/admin/users" className="block p-4 hover:bg-gray-700">Users</Link></li>
+        <li><Link to="/admin/orders" className="block p-4 hover:bg-gray-700">Orders</Link></li>
+        <li><Link to="/admin/settings" className="block p-4 hover:bg-gray-700">Settings</Link></li>
+      </ul>
+      {commonSidebar}
+    </>
+  );
+
+  // Sidebar content for Customer
+  const customerSidebar = (
+    <>
+      <h2 className="text-2xl p-4">Customer Dashboard</h2>
+      <ul>
+        <li><Link to="/customer/orders" className="block p-4 hover:bg-gray-700">My Orders</Link></li>
+        <li><Link to="/customer/profile" className="block p-4 hover:bg-gray-700">Profile</Link></li>
+        <li><Link to="/customer/settings" className="block p-4 hover:bg-gray-700">Settings</Link></li>
+      </ul>
+      {commonSidebar}
+    </>
+  );
+
+  // Sidebar content for Vendor
+  const vendorSidebar = (
+    <>
+      <h2 className="text-2xl p-4">Vendor Dashboard</h2>
+      <ul>
+        <li><Link to="/vendor/inventory" className="block p-4 hover:bg-gray-700">Inventory Management</Link></li>
+        <li><Link to="/vendor/sales" className="block p-4 hover:bg-gray-700">Sales Analytics</Link></li>
+        <li><Link to="/vendor/orders" className="block p-4 hover:bg-gray-700">Order Management</Link></li>
+        <li><Link to="/vendor/profile" className="block p-4 hover:bg-gray-700">Vendor Profile</Link></li>
+      </ul>
+      {commonSidebar}
+    </>
+  );
+
+  // Render sidebar based on user role
+  const renderSidebar = () => {
+    switch (userRole) {
+      case 'admin':
+        return adminSidebar;
+      case 'customer':
+        return customerSidebar;
+      case 'vendor':
+        return vendorSidebar;
+      default:
+        return <div>Unauthorized access</div>;
+    }
+  };
+
+  return <div className="sidebar w-60 bg-gray-800 text-white">{renderSidebar()}</div>;
 };
 
 export default Sidebar;

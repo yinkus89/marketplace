@@ -1,5 +1,3 @@
-// navigation.js
-
 let debounceTimeout;
 let lastNavTime = 0;
 
@@ -10,39 +8,39 @@ const getUserRole = () => {
 };
 
 // Debounced Navigation Function
-const navigateWithDebounce = (url) => {
+const navigateWithDebounce = (navigate, url) => {
   clearTimeout(debounceTimeout);
   debounceTimeout = setTimeout(() => {
-    window.location.href = url;
-  }, 300); // 300ms debounce time
+    navigate(url);
+  }, 1000); // Increased debounce time to 1000ms (1 second)
 };
 
 // Throttled Navigation Function
-const throttleNavigate = (url) => {
+const throttleNavigate = (navigate, url) => {
   const now = Date.now();
   const timeDifference = now - lastNavTime;
 
-  // Allow navigation only if 300ms have passed since last navigation
-  if (timeDifference >= 300) {
-    window.location.href = url;
+  // Allow navigation only if 1000ms have passed since last navigation
+  if (timeDifference >= 1000) { // Increased throttle time to 1000ms (1 second)
+    navigate(url);
     lastNavTime = now;
   }
 };
 
 // Global Navigation Function (debounce or throttle based on user role)
-const globalNavigate = (url) => {
+const globalNavigate = (navigate, url) => {
   const role = getUserRole();
 
   // Apply debounce or throttle depending on role
   if (role === 'admin') {
     console.log('Admin navigating...');
-    throttleNavigate(url);  // Admin uses throttle
+    throttleNavigate(navigate, url);  // Admin uses throttle
   } else if (role === 'user') {
     console.log('User navigating...');
-    navigateWithDebounce(url);  // User uses debounce
+    navigateWithDebounce(navigate, url);  // User uses debounce
   } else {
     console.log('Unknown role navigating...');
-    throttleNavigate(url);  // Default to throttle for unknown roles
+    throttleNavigate(navigate, url);  // Default to throttle for unknown roles
   }
 };
 

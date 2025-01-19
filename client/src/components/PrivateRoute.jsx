@@ -22,9 +22,9 @@ const PrivateRoute = ({ roleRequired, element, ...rest }) => {
     return <div>Loading...</div>; // Replace with a spinner if desired
   }
 
-  // Redirect to login if no token is found
+  // If no token is found, redirect to Shop page
   if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/shop" state={{ from: location }} replace />;
   }
 
   // Redirect to the correct dashboard if role doesn't match
@@ -34,7 +34,7 @@ const PrivateRoute = ({ roleRequired, element, ...rest }) => {
       customer: "/customer/dashboard",
       admin: "/admin/dashboard",
     };
-    const redirectPath = redirectPaths[role] || "/unauthorized";
+    const redirectPath = redirectPaths[role] || "/shop"; // Fallback to /shop if the role doesn't match
 
     return <Navigate to={redirectPath} replace />;
   }

@@ -93,12 +93,12 @@ const Checkout = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-semibold mb-4">Checkout</h1>
+    <div className="container mx-auto p-4 max-w-lg">
+      <h1 className="text-3xl font-semibold mb-4 text-center">Checkout</h1>
 
       <div className="mb-4">
-        <h2 className="text-2xl">Cart Summary</h2>
-        <ul>
+        <h2 className="text-2xl font-semibold mb-2">Cart Summary</h2>
+        <ul className="space-y-2">
           {cartItems.map((item) => (
             <li key={item.id} className="flex justify-between">
               <span>{item.name}</span>
@@ -108,31 +108,36 @@ const Checkout = () => {
           ))}
         </ul>
         <hr className="my-4" />
-        <p className="text-xl font-bold">
+        <p className="text-xl font-bold text-right">
           Total: ${cartItems.reduce((total, item) => total + item.price * item.quantity, 0)}
         </p>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="mb-4">
-          <label>
-            <input
-              type="radio"
-              value="guest"
-              checked={!isRegistered}
-              onChange={() => setIsRegistered(false)}
-            />
-            Guest Checkout
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="registered"
-              checked={isRegistered}
-              onChange={() => setIsRegistered(true)}
-            />
-            Registered Customer
-          </label>
+          <label className="block text-lg font-medium">Checkout as</label>
+          <div className="flex items-center space-x-6">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="guest"
+                checked={!isRegistered}
+                onChange={() => setIsRegistered(false)}
+                className="mr-2"
+              />
+              Guest Checkout
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="registered"
+                checked={isRegistered}
+                onChange={() => setIsRegistered(true)}
+                className="mr-2"
+              />
+              Registered Customer
+            </label>
+          </div>
         </div>
 
         {/* Registered Customer Fields */}
@@ -144,7 +149,7 @@ const Checkout = () => {
                 placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="border px-4 py-2 rounded-md w-full"
+                className="border px-4 py-2 rounded-md w-full focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="mb-4">
@@ -153,7 +158,7 @@ const Checkout = () => {
                 placeholder="Your Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="border px-4 py-2 rounded-md w-full"
+                className="border px-4 py-2 rounded-md w-full focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="mb-4">
@@ -162,7 +167,7 @@ const Checkout = () => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="border px-4 py-2 rounded-md w-full"
+                className="border px-4 py-2 rounded-md w-full focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </>
@@ -175,7 +180,7 @@ const Checkout = () => {
             placeholder="Shipping Address"
             value={shippingAddress}
             onChange={(e) => setShippingAddress(e.target.value)}
-            className="border px-4 py-2 rounded-md w-full"
+            className="border px-4 py-2 rounded-md w-full focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -186,30 +191,32 @@ const Checkout = () => {
             placeholder="Phone Number"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
-            className="border px-4 py-2 rounded-md w-full"
+            className="border px-4 py-2 rounded-md w-full focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div className="mb-4">
-          <h3 className="text-xl">Select Payment Method</h3>
-          <div className="flex items-center space-x-4">
-            <label>
+          <h3 className="text-xl font-semibold">Select Payment Method</h3>
+          <div className="flex items-center space-x-6">
+            <label className="flex items-center">
               <input
                 type="radio"
                 name="paymentMethod"
                 value="creditCard"
                 checked={paymentMethod === 'creditCard'}
                 onChange={() => handlePaymentMethodChange('creditCard')}
+                className="mr-2"
               />
               Credit/Debit Card
             </label>
-            <label>
+            <label className="flex items-center">
               <input
                 type="radio"
                 name="paymentMethod"
                 value="paypal"
                 checked={paymentMethod === 'paypal'}
                 onChange={() => handlePaymentMethodChange('paypal')}
+                className="mr-2"
               />
               PayPal
             </label>
@@ -218,8 +225,8 @@ const Checkout = () => {
 
         {paymentMethod === 'creditCard' && (
           <div className="mb-4">
-            <h4 className="text-xl">Credit Card Details</h4>
-            <CardElement className="border px-4 py-2 rounded-md w-full" />
+            <h4 className="text-xl font-semibold">Credit Card Details</h4>
+            <CardElement className="border px-4 py-2 rounded-md w-full focus:ring-2 focus:ring-blue-500" />
           </div>
         )}
 
@@ -229,10 +236,14 @@ const Checkout = () => {
           </div>
         )}
 
-        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+        {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
 
-        <div className="mt-4">
-          <button type="submit" className="bg-blue-500 text-white px-6 py-2 rounded-md" disabled={!stripe}>
+        <div className="mt-4 text-center">
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+            disabled={!stripe}
+          >
             Submit Order
           </button>
         </div>

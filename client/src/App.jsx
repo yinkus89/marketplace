@@ -19,23 +19,26 @@ import Contact from "./pages/Contact";
 import Checkout from "./pages/Checkout";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import Sidebar from "./components/Sidebar";
 import Spinner from "./components/Spinner";
 import NewCollection from "./components/NewCollection";
 import Orders from "./pages/Orders";
 import OrderDetails from "./pages/OrderDetails";
 import MouseMoveEffect from "./components/MouseMoveEffect";
-import Sidebar from "./components/Sidebar";
+import CustomerSidebar from "./dashboards/CustomerSidebar";
 import AdminSidebar from "./dashboards/AdminSidebar";
 import VendorSidebar from "./dashboards/VendorSidebar";
-import CustomerSidebar from "./dashboards/CustomerSidebar";
 import AdminDashboard from "./dashboards/AdminDashboard";
 import LogoutPage from "./pages/LogoutPage";
 import { CartProvider } from "./context/CartContext";
 import DashboardLayout from "./dashboards/DashboardLayout";
 import StoreList from "./components/StoreList";
 import StoreReviews from "./components/StoreReviews";
-import ProfilePage from './components/ProfilePage'; // Import the ProfilePage
-import PrivateRoute from './components/PrivateRoute'; // Import the PrivateRoute component
+import AdminProfile from "./profiles/AdminProfile";
+import CustomerProfile from "./profiles/CustomerProfile";
+import VendorProfile from "./profiles/VendorProfile";
+import ProfilePage from "./components/ProfilePage"; // Import the ProfilePage
+import PrivateRoute from "./components/PrivateRoute"; // Import the PrivateRoute component
 import "./styles/globalstyles.css";
 
 // Utility function to get the user role
@@ -75,7 +78,11 @@ const App = () => {
         <div className="content">
           <MouseMoveEffect />
           <Header />
-          <Navigation toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+          <Navigation
+            toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            isAuthenticated={!!userRole}
+            roles={[userRole]}
+          />
 
           {isLoading && <Spinner />}
 
@@ -83,10 +90,16 @@ const App = () => {
             <Routes>
               {/* General Routes */}
               <Route path="/" element={<StoreList />} />
-              <Route path="/stores/:storeId/reviews" element={<StoreReviews />} />
+              <Route
+                path="/stores/:storeId/reviews"
+                element={<StoreReviews />}
+              />
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/shop" element={<Shop selectedCategory={selectedCategory} />} />
+              <Route
+                path="/shop"
+                element={<Shop selectedCategory={selectedCategory} />}
+              />
               <Route path="/product/:id" element={<ProductDetails />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/about" element={<About />} />
@@ -96,79 +109,79 @@ const App = () => {
               <Route path="/orders/:id" element={<OrderDetails />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/new-collection" element={<NewCollection />} />
-
+              <Route path="/admin/profile" element={<AdminProfile />} />
+              <Route path="/customer/profile" element={<CustomerProfile />} />
+              <Route path="/vendor/profile" element={<VendorProfile />} />
               {/* Role-Based Routes with PrivateRoute */}
-<Route
-  path="/admin/dashboard"
-  element={
-    <PrivateRoute
-      roleRequired="admin"
-      element={
-        <DashboardLayout sidebar={<AdminSidebar />}>
-          <AdminDashboard />
-        </DashboardLayout>
-      }
-    />
-  }
-/>
-<Route
-  path="/vendor/dashboard"
-  element={
-    <PrivateRoute
-      roleRequired="vendor"
-      element={
-        <DashboardLayout sidebar={<VendorSidebar />}>
-          <VendorDashboard />
-        </DashboardLayout>
-      }
-    />
-  }
-/>
-<Route
-  path="/customer/dashboard"
-  element={
-    <PrivateRoute
-      roleRequired="customer"
-      element={
-        <DashboardLayout sidebar={<CustomerSidebar />}>
-          <CustomerDashboard />
-        </DashboardLayout>
-      }
-    />
-  }
-/>
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <PrivateRoute
+                    roleRequired="admin"
+                    element={
+                      <DashboardLayout sidebar={<AdminSidebar />}>
+                        <AdminDashboard />
+                      </DashboardLayout>
+                    }
+                  />
+                }
+              />
+              <Route
+                path="/vendor/dashboard"
+                element={
+                  <PrivateRoute
+                    roleRequired="vendor"
+                    element={
+                      <DashboardLayout sidebar={<VendorSidebar />}>
+                        <VendorDashboard />
+                      </DashboardLayout>
+                    }
+                  />
+                }
+              />
+              <Route
+                path="/customer/dashboard"
+                element={
+                  <PrivateRoute
+                    roleRequired="customer"
+                    element={
+                      <DashboardLayout sidebar={<CustomerSidebar />}>
+                        <CustomerDashboard />
+                      </DashboardLayout>
+                    }
+                  />
+                }
+              />
 
-{/* Profile Routes for Each Role */}
-<Route
-  path="/admin/profile"
-  element={
-    <PrivateRoute
-      roleRequired="admin"
-      element={<ProfilePage role="admin" />}
-    />
-  }
-/>
-<Route
-  path="/vendor/profile"
-  element={
-    <PrivateRoute
-      roleRequired="vendor"
-      element={<ProfilePage role="vendor" />}
-    />
-  }
-/>
-<Route
-  path="/customer/profile"
-  element={
-    <PrivateRoute
-      roleRequired="customer"
-      element={<ProfilePage role="customer" />}
-    />
-  }
-/>
+              {/* Profile Routes for Each Role */}
+              <Route
+                path="/admin/profile"
+                element={
+                  <PrivateRoute
+                    roleRequired="admin"
+                    element={<ProfilePage role="admin" />}
+                  />
+                }
+              />
+              <Route
+                path="/vendor/profile"
+                element={
+                  <PrivateRoute
+                    roleRequired="vendor"
+                    element={<ProfilePage role="vendor" />}
+                  />
+                }
+              />
+              <Route
+                path="/customer/profile"
+                element={
+                  <PrivateRoute
+                    roleRequired="customer"
+                    element={<ProfilePage role="customer" />}
+                  />
+                }
+              />
 
-              
-               
               {/* Logout Page */}
               <Route path="/logout" element={<LogoutPage />} />
 
