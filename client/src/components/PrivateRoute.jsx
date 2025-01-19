@@ -7,13 +7,24 @@ const PrivateRoute = ({ roleRequired, element, ...rest }) => {
   const [role, setRole] = useState(null);
   const location = useLocation(); // Get current location for redirection
 
+  // Role redirection mapping (you can centralize this if you have multiple roles)
+  const redirectPaths = {
+    vendor: "/vendor/dashboard",
+    customer: "/customer/dashboard",
+    admin: "/admin/dashboard",
+  };
+
   // Check authentication and role on component mount
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedRole = localStorage.getItem("role");
 
-    setToken(storedToken);
-    setRole(storedRole);
+    // If token exists, set token and role in state
+    if (storedToken) {
+      setToken(storedToken);
+      setRole(storedRole);
+    }
+
     setIsLoading(false); // Loading complete
   }, []);
 
@@ -22,19 +33,14 @@ const PrivateRoute = ({ roleRequired, element, ...rest }) => {
     return <div>Loading...</div>; // Replace with a spinner if desired
   }
 
-  // If no token is found, redirect to Shop page
+  // If no token is found, redirect to login page
   if (!token) {
-    return <Navigate to="/shop" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Redirect to the correct dashboard if role doesn't match
+  // If role doesn't match the required role, redirect to appropriate dashboard
   if (role !== roleRequired) {
-    const redirectPaths = {
-      vendor: "/vendor/dashboard",
-      customer: "/customer/dashboard",
-      admin: "/admin/dashboard",
-    };
-    const redirectPath = redirectPaths[role] || "/shop"; // Fallback to /shop if the role doesn't match
+    const redirectPath = redirectPaths[role] || "/login"; // Fallback to /login if role doesn't match
 
     return <Navigate to={redirectPath} replace />;
   }

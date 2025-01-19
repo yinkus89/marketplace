@@ -170,11 +170,25 @@ router.post('/login', async (req: Request, res: Response) => {
       jwtSecret,
       { expiresIn: '1h' }
     );
-
+  // Determine which dashboard to redirect to based on the user's role
+  let dashboardUrl = '';
+  switch (user.role) {
+    case 'ADMIN':
+      dashboardUrl = '/admin-dashboard';
+      break;
+    case 'VENDOR':
+      dashboardUrl = '/vendor-dashboard';
+      break;
+    case 'CUSTOMER':
+      dashboardUrl = '/customer-dashboard';
+      break;
+    default:
+      dashboardUrl = '/customer-dashboard'; // Default to customer if role is not defined
+  }
     res.status(200).json({
       success: true,
       message: 'Login successful',
-      data: { token },
+      data: { token ,dashboardUrl },
     });
   } catch (error) {
     console.error('Error in login route:', error);

@@ -2,9 +2,11 @@ let debounceTimeout;
 let lastNavTime = 0;
 
 // Function to check the user role (adapt it to your system)
+// In a real app, this should dynamically fetch the user role from state or context
 const getUserRole = () => {
-  // Fetch the current user's role from your authentication context or state
-  return 'admin';  // This should be dynamically fetched based on user role
+  // Example dynamic role fetch from context or state
+  const role = 'admin';  // Replace with dynamic logic to fetch the actual role
+  return role;
 };
 
 // Debounced Navigation Function
@@ -44,5 +46,10 @@ const globalNavigate = (navigate, url) => {
   }
 };
 
+// Clear debounce on component unmount (important for React)
+const clearDebounce = () => {
+  clearTimeout(debounceTimeout);
+};
+
 // Export for use in other files
-export { globalNavigate };
+export { globalNavigate, clearDebounce };

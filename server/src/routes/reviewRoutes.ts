@@ -1,9 +1,12 @@
 import { Router } from 'express';
-import { getReviews, createReview } from '../controllers/reviewController';
+import { createStoreReview, getReviewsByStoreId } from '../controllers/reviewController';
 
 const router = Router();
 
-router.get('/:storeId', getReviews);
-router.post('/:storeId', createReview);
+// Create a new store review
+router.post('/:storeId/reviews', createStoreReview);
+
+// Get all reviews for a store
+router.get('/:storeId/reviews', getReviewsByStoreId);
 
 export default router;

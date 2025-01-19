@@ -18,6 +18,8 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const client_1 = require("@prisma/client");
 const google_auth_library_1 = require("google-auth-library"); // Google OAuth client
+const nodemailer_1 = __importDefault(require("nodemailer"));
+const crypto_1 = __importDefault(require("crypto")); // For generating reset tokens
 const protectRoute_1 = require("../middlewares/protectRoute"); // Import the protectRoute middleware
 const roleGuard_1 = __importDefault(require("../middlewares/roleGuard")); // Import the roleGuard middleware
 const prisma = new client_1.PrismaClient();
@@ -39,28 +41,21 @@ router.post('/register', [
         .isIn(['ADMIN', 'CUSTOMER', 'VENDOR'])
         .withMessage('Role must be one of: ADMIN, CUSTOMER, VENDOR')
 ], (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('Received request body:', req.body); // Log the request body for debugging purposes
-    // Normalize role to uppercase
     const { email, name, password, role } = req.body;
-    const normalizedRole = normalizeRole(role); // Use utility function to normalize role
-    // Check for validation errors
+    const normalizedRole = normalizeRole(role);
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        // Check if the user already exists
         const existingUser = yield prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             return res.status(400).json({ message: 'Email already in use' });
         }
-        // Hash the password
         const hashedPassword = yield bcryptjs_1.default.hash(password, 12);
-        // Create new user in the database
         const newUser = yield prisma.user.create({
-            data: { email, name, password: hashedPassword, role: normalizedRole }, // Use the normalized role
+            data: { email, name, password: hashedPassword, role: normalizedRole },
         });
-        // Send success response
         res.status(201).json({
             success: true,
             message: 'User registered successfully',
@@ -72,31 +67,91 @@ router.post('/register', [
         res.status(500).json({ message: 'Error registering user' });
     }
 }));
+// Forgot Password Route
+router.post('/forgot-password', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email } = req.body;
+    try {
+        const user = yield prisma.user.findUnique({ where: { email } });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const resetToken = crypto_1.default.randomBytes(32).toString('hex');
+        const tokenExpiry = new Date(Date.now() + 3600000); // Token expires in 1 hour
+        // Save the reset token and expiry time in the database
+        yield prisma.user.update({
+            where: { email },
+            data: { resetToken, tokenExpiry },
+        });
+        // Create the reset link
+        const resetUrl = `http://localhost:4001/reset-password/${resetToken}`;
+        // Set up the email transporter
+        const transporter = nodemailer_1.default.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+        // Send the reset link to the user's email
+        const mailOptions = {
+            from: 'YourAppName <yourapp@example.com>',
+            to: email,
+            subject: 'Password Reset Request',
+            html: `<p>You requested a password reset. Click the link below to reset your password:</p>
+             <a href="${resetUrl}">${resetUrl}</a>
+             <p>If you didn't request this, please ignore this email.</p>`,
+        };
+        yield transporter.sendMail(mailOptions);
+        res.status(200).json({ message: 'Password reset link sent to your email' });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Something went wrong, please try again' });
+    }
+}));
+// Reset Password Route
+router.post('/reset-password/:token', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+    try {
+        const user = yield prisma.user.findFirst({
+            where: {
+                resetToken: token,
+                tokenExpiry: { gte: new Date() }, // Check if the token is expired
+            },
+        });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
+        const hashedPassword = yield bcryptjs_1.default.hash(newPassword, 12);
+        yield prisma.user.update({
+            where: { id: user.id },
+            data: { password: hashedPassword, resetToken: null, tokenExpiry: null },
+        });
+        res.status(200).json({ message: 'Password reset successful' });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Something went wrong, please try again' });
+    }
+}));
 // Login Route (Standard Login)
 router.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
-    // Check for missing fields
     if (!email || !password) {
         return res.status(400).json({ message: 'Email and password are required' });
     }
     try {
-        // Find the user by email
         const user = yield prisma.user.findUnique({ where: { email } });
         if (!user) {
-            console.log('User not found:', email); // Log if user is not found
             return res.status(400).json({ message: 'Invalid email or password' });
         }
-        console.log('User found:', user); // Log the found user details
-        // Compare password
         const isMatch = yield bcryptjs_1.default.compare(password, user.password);
-        console.log('Password match:', isMatch); // Log the result of the password comparison
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
-        // Generate JWT token
         const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
         const token = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role }, jwtSecret, { expiresIn: '1h' });
-        // Send success response with the token
         res.status(200).json({
             success: true,
             message: 'Login successful',
@@ -115,32 +170,28 @@ router.post('/google-login', (req, res) => __awaiter(void 0, void 0, void 0, fun
         return res.status(400).json({ message: 'Token is required' });
     }
     try {
-        // Verify the token using Google API
         const ticket = yield client.verifyIdToken({
             idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID, // Ensure this matches your Google Client ID
+            audience: process.env.GOOGLE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
-        const { email, name } = payload || {}; // Safely destructure, adding a fallback for payload
+        const { email, name } = payload || {};
         if (!email || !name) {
             return res.status(400).json({ message: 'Invalid Google token' });
         }
-        // Check if the user already exists in your database
         let user = yield prisma.user.findUnique({
             where: { email },
         });
-        // If user doesn't exist, create a new one
         if (!user) {
             user = yield prisma.user.create({
                 data: {
                     email,
                     name,
-                    password: '', // No password needed for Google login
-                    role: 'CUSTOMER', // Default role, adjust if necessary
+                    password: '',
+                    role: 'CUSTOMER',
                 },
             });
         }
-        // Create a JWT token for the user
         const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
         const newToken = jsonwebtoken_1.default.sign({ userId: user.id, email: user.email, role: user.role }, jwtSecret, { expiresIn: '1h' });
         res.status(200).json({

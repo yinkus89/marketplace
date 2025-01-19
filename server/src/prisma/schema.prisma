@@ -14,20 +14,21 @@ datasource db {
 }
 
 model Product {
-  id          Int         @id @default(autoincrement())
-  name        String      @db.VarChar(100)
-  description String      @db.VarChar(255)
+  id          Int              @id @default(autoincrement())
+  name        String           @db.VarChar(100)
+  description String           @db.VarChar(255)
   price       Float
-  imageUrl    String      @db.VarChar(255)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  imageUrl    String           @db.VarChar(255)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   deletedAt   DateTime?
   categoryId  Int?
-  orderItems  OrderItem[] // Relation defined here
-  category    Category?   @relation(fields: [categoryId], references: [id])
-  vendorId    Int? // Add the vendorId field to relate to Vendor
-  vendor      Vendor?     @relation(fields: [vendorId], references: [id]) // Relation to Vendor
-  reviews     Review[] // Reverse relation to Review
+  orderItems  OrderItem[]      // Relation to OrderItem
+  category    Category?        @relation(fields: [categoryId], references: [id])
+  vendorId    Int?             // Relation to Vendor
+  vendor      Vendor?          @relation(fields: [vendorId], references: [id])
+  reviews     ProductReview[]  // Relation to ProductReview
+  wishlists   Wishlist[]       // Relation to Wishlist
 
   @@index([name])
   @@index([categoryId, price], map: "idx_category_price")
@@ -40,58 +41,79 @@ model Category {
   name        String    @unique @db.VarChar(100)
   description String?   @db.VarChar(255)
   deletedAt   DateTime?
-  products    Product[] // Relation defined here
+  products    Product[] // Relation to Product
 
   @@index([name])
 }
 
 model Vendor {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(100)
-  email     String   @unique @db.VarChar(255)
-  phone     String?  @db.VarChar(20)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orders    Order[] // Orders placed by the vendor
-  userId    Int      @unique // Ensure userId is unique for a one-to-one relation
-  user      User     @relation(fields: [userId], references: [id]) // One-to-one relation to User
-
-  products Product[] // Relation to Product
-  stores   Store[] // Relation to Stores
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(100)
+  email     String    @unique @db.VarChar(255)
+  phone     String?   @db.VarChar(20)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  orders    Order[]   // Relation to Order
+  userId    Int       @unique
+  user      User      @relation(fields: [userId], references: [id]) // One-to-one relation to User
+  products  Product[] // Relation to Product
+  stores    Store[]   // Relation to Store
 
   @@index([email])
 }
 
 model Store {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(100)
+  id          Int             @id @default(autoincrement())
+  name        String          @db.VarChar(100)
   description String
-  logo        String   @db.VarChar(255)
+  logo        String          @db.VarChar(255)
   sellerId    Int
-  seller      Vendor   @relation(fields: [sellerId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  reviews     Review[] // Relation to Reviews
+  seller      Vendor          @relation(fields: [sellerId], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  reviews     StoreReview[]   // Relation to StoreReview
 
   @@index([name])
 }
 
-model Review {
-  id        Int      @id @default(autoincrement())
-  storeId   Int
-  store     Store    @relation(fields: [storeId], references: [id])
-  productId Int?     // Nullable relation for product-specific reviews
-  product   Product? @relation(fields: [productId], references: [id])
-  customerId Int    // Changed from buyerId to customerId
-  customer   Customer @relation(fields: [customerId], references: [id]) // Changed from buyer to customer
-  rating    Float   // e.g., 1.0 to 5.0
-  comment   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model ProductReview {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id]) // Relation to Product
+  customerId Int
+  customer   Customer @relation(fields: [customerId], references: [id]) // Relation to Customer
+  rating     Float    // e.g., 1.0 to 5.0
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([productId])
+}
+
+model StoreReview {
+  id         Int      @id @default(autoincrement())
+  storeId    Int
+  store      Store    @relation(fields: [storeId], references: [id]) // Relation to Store
+  customerId Int
+  customer   Customer @relation(fields: [customerId], references: [id]) // Relation to Customer
+  rating     Float    // e.g., 1.0 to 5.0
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([storeId])
 }
 
+model Wishlist {
+  id         Int       @id @default(autoincrement())
+  customerId Int       // Relation to Customer
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  productId  Int       // Relation to Product
+  product    Product   @relation(fields: [productId], references: [id])
+  createdAt  DateTime  @default(now())
+
+  @@unique([customerId, productId], name: "unique_customer_product")
+}
 
 model Order {
   id              Int         @id @default(autoincrement())
@@ -103,7 +125,7 @@ model Order {
   customer        Customer    @relation("CustomerOrders", fields: [customerId], references: [id])
   customerId      Int
   vendor          Vendor?     @relation(fields: [vendorId], references: [id])
-  vendorId        Int? // Nullable relation field for Vendor
+  vendorId        Int?        // Nullable relation field for Vendor
 
   @@index([customerId])
 }
@@ -113,26 +135,28 @@ model OrderItem {
   quantity  Int
   productId Int
   orderId   Int
-  order     Order   @relation("OrderItems", fields: [orderId], references: [id]) // Relation defined here
-  product   Product @relation(fields: [productId], references: [id])
+  order     Order   @relation("OrderItems", fields: [orderId], references: [id]) // Relation to Order
+  product   Product @relation(fields: [productId], references: [id]) // Relation to Product
 
   @@index([productId, orderId])
 }
 
 model Customer {
-  id           Int       @id @default(autoincrement())
-  name         String    @db.VarChar(100)
-  email        String    @unique @db.VarChar(255)
-  passwordHash String    @db.VarChar(255)
-  phoneNumber  String?   @db.VarChar(20)
-  address      String?   @db.VarChar(255)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id           Int              @id @default(autoincrement())
+  name         String           @db.VarChar(100)
+  email        String           @unique @db.VarChar(255)
+  passwordHash String           @db.VarChar(255)
+  phoneNumber  String?          @db.VarChar(20)
+  address      String?          @db.VarChar(255)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
   deletedAt    DateTime?
-  userId       Int       @unique
-  user         User      @relation("UserCustomer", fields: [userId], references: [id])
-  orders       Order[]   @relation("CustomerOrders")
-  reviews      Review[] // Relation to Reviews
+  userId       Int              @unique
+  user         User             @relation("UserCustomer", fields: [userId], references: [id])
+  orders       Order[]          @relation("CustomerOrders")
+  productReviews ProductReview[] // Relation to ProductReview
+  storeReviews   StoreReview[]   // Relation to StoreReview
+  wishlists    Wishlist[]       // Relation to Wishlist
 
   @@index([email])
   @@index([phoneNumber])
@@ -149,14 +173,20 @@ model User {
   updatedAt            DateTime   @updatedAt
   deletedAt            DateTime?
   vendorId             Int?
-  customer             Customer?  @relation("UserCustomer") // Reverse relation to Customer
-  customerId           Int? // Prisma will infer this from the relation
-  vendor               Vendor?    @relation // Reverse relation to Vendor
+  customer             Customer?  @relation("UserCustomer") // Relation to Customer
+  vendor               Vendor?    @relation // Relation to Vendor
   resetTokenExpiration DateTime?
-  resetToken           String? // Optional reset token
-  tokenExpiry          DateTime? // Optional expiry for the token
+  resetToken           String?
+  tokenExpiry          DateTime?
 
   @@index([email])
+}
+model Setting {
+  id         Int    @id @default(autoincrement())
+  key        String @unique
+  value      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 enum Role {
