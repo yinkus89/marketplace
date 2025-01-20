@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import prisma from '../prisma/prismaClient';
-import { verifyToken } from '../middlewares/authMiddleware';  // Ensure correct import path
+import { verifyToken } from '../middlewares/authMiddleware'; // Ensure correct import path
 import { JWTPayload } from '../types/payload'; // Import the correct JWTPayload type
 
 // Extend Express Request to include `user` as JWTPayload
@@ -29,10 +29,9 @@ router.get("/dashboard", verifyToken, checkVendor, async (req: Request, res: Res
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // Correct query: Ensure you are querying by the appropriate unique field (like `userId`)
     const vendorData = await prisma.vendor.findUnique({
-      where: { userId: req.user.userId },  // Using `userId`, ensure it's correct
-      include: { products: true, orders: true },  // Ensure `products` relation exists in Prisma schema
+      where: { userId: req.user.userId }, // Using `userId`, ensure it's correct
+      include: { products: true, orders: true },
     });
 
     if (!vendorData) {
@@ -46,13 +45,16 @@ router.get("/dashboard", verifyToken, checkVendor, async (req: Request, res: Res
   }
 });
 
-// Example: Add another route for vendor's product management
+// Create new product (for vendor only)
 router.post("/create-product", verifyToken, checkVendor, async (req: Request, res: Response) => {
   const { name, price, description, imageUrl } = req.body;
 
-  // Validate product fields
   if (!name || !price || !description || !imageUrl) {
     return res.status(400).json({ message: "Missing required fields: name, price, description, imageUrl" });
+  }
+
+  if (typeof price !== 'number') {
+    return res.status(400).json({ message: "Price must be a number" });
   }
 
   try {
@@ -60,14 +62,13 @@ router.post("/create-product", verifyToken, checkVendor, async (req: Request, re
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // Correct product creation: Associate with the correct relation, e.g., `vendorId`
     const newProduct = await prisma.product.create({
       data: {
         name,
         price,
         description,
-        vendorId: req.user.userId,  // Correct association with vendorId
-        imageUrl,  // Make sure to include imageUrl here
+        vendorId: req.user.userId,
+        imageUrl,
       },
     });
 

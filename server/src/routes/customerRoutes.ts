@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import prisma from '../prisma/prismaClient';  // Assuming prisma client is set up correctly
+import prisma from '../prisma/prismaClient';  // Assuming Prisma client is set up correctly
 import { protectRoute } from '../middlewares/protectRoute';  // Import the protectRoute middleware
 
 const router = express.Router();
@@ -19,9 +19,10 @@ router.get("/dashboard", protectRoute, checkCustomer, async (req: Request, res: 
       return res.status(401).json({ message: "User not authenticated" });
     }
 
+    // Fetch customer profile and include their orders
     const customerData = await prisma.customer.findUnique({
       where: { userId: req.user.userId },  // Corrected from req.user.id to req.user.userId
-      include: { orders: true },  // Including orders for customer
+      include: { orders: true },  // Including orders for the customer
     });
 
     if (!customerData) {
@@ -42,13 +43,37 @@ router.get("/orders", protectRoute, checkCustomer, async (req: Request, res: Res
       return res.status(401).json({ message: "User not authenticated" });
     }
 
+    // Fetch orders based on userId (linked to customer)
     const orders = await prisma.order.findMany({
-      where: { customerId: req.user.userId },  // Fetch orders based on userId (linked to customer)
+      where: { customerId: req.user.userId },  // Fetch orders for the logged-in customer
     });
 
     res.status(200).json(orders);  // Respond with the orders data
   } catch (error) {
     console.error("Error fetching orders:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Fetch customer profile (just like in the frontend component)
+router.get("/profile", protectRoute, checkCustomer, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Fetch customer profile data, excluding sensitive info
+    const customerProfile = await prisma.customer.findUnique({
+      where: { userId: req.user.userId },
+    });
+
+    if (!customerProfile) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    res.status(200).json(customerProfile);  // Return the profile data
+  } catch (error) {
+    console.error("Error fetching customer profile:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });

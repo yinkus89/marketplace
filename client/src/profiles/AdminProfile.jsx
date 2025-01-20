@@ -1,17 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import API from '../api/apiClient';
 
 const AdminProfile = () => {
-  // Example state for storing and managing the admin profile
-  const [adminData, setAdminData] = useState({
-    name: 'John Doe',
-    email: 'admin@example.com',
-    role: 'Administrator',
-  });
+  const [adminData, setAdminData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch admin profile data when the component mounts
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        setLoading(true);
+        const response = await API.get('/admin/profile'); // Replace with actual API endpoint
+        setAdminData(response.data);
+      } catch (err) {
+        setError(
+          err.response?.data?.message || 'Failed to fetch admin profile. Please try again.'
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAdminData();
+  }, []);
 
   const handleProfileEdit = () => {
     // Function to handle profile editing (e.g., opening a modal or editing form)
     alert('Edit Profile functionality here!');
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+
+  if (!adminData) {
+    return <div>No data available.</div>;
+  }
 
   return (
     <div className="admin-profile-container p-6 bg-white rounded-lg shadow-md">

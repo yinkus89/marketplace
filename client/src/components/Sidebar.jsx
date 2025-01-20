@@ -1,83 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // For navigation
+import React from "react";
+import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 
-const Sidebar = ({ handleLogout }) => {
-  const [userRole, setUserRole] = useState(''); // Store role of the logged-in user
+const Sidebar = ({ categories = [] }) => {
+  const navigate = useNavigate();
 
-  // Retrieve user role from localStorage or state
-  useEffect(() => {
-    const role = localStorage.getItem('userRole'); // Assume role is saved in localStorage
-    setUserRole(role);
-  }, []);
-
-  // Common sidebar content for all roles
-  const commonSidebar = (
-    <ul>
-      <li>
-        <button onClick={handleLogout} className="block py-2 px-4 w-full text-left rounded-md hover:bg-gray-700">
-          Logout
-        </button>
-      </li>
-    </ul>
-  );
-
-  // Sidebar content for Admin
-  const adminSidebar = (
-    <>
-      <h2 className="text-2xl p-4">Admin Dashboard</h2>
-      <ul>
-        <li><Link to="/admin/products" className="block p-4 hover:bg-gray-700">Products</Link></li>
-        <li><Link to="/admin/categories" className="block p-4 hover:bg-gray-700">Categories</Link></li>
-        <li><Link to="/admin/users" className="block p-4 hover:bg-gray-700">Users</Link></li>
-        <li><Link to="/admin/orders" className="block p-4 hover:bg-gray-700">Orders</Link></li>
-        <li><Link to="/admin/settings" className="block p-4 hover:bg-gray-700">Settings</Link></li>
-      </ul>
-      {commonSidebar}
-    </>
-  );
-
-  // Sidebar content for Customer
-  const customerSidebar = (
-    <>
-      <h2 className="text-2xl p-4">Customer Dashboard</h2>
-      <ul>
-        <li><Link to="/customer/orders" className="block p-4 hover:bg-gray-700">My Orders</Link></li>
-        <li><Link to="/customer/profile" className="block p-4 hover:bg-gray-700">Profile</Link></li>
-        <li><Link to="/customer/settings" className="block p-4 hover:bg-gray-700">Settings</Link></li>
-      </ul>
-      {commonSidebar}
-    </>
-  );
-
-  // Sidebar content for Vendor
-  const vendorSidebar = (
-    <>
-      <h2 className="text-2xl p-4">Vendor Dashboard</h2>
-      <ul>
-        <li><Link to="/vendor/inventory" className="block p-4 hover:bg-gray-700">Inventory Management</Link></li>
-        <li><Link to="/vendor/sales" className="block p-4 hover:bg-gray-700">Sales Analytics</Link></li>
-        <li><Link to="/vendor/orders" className="block p-4 hover:bg-gray-700">Order Management</Link></li>
-        <li><Link to="/vendor/profile" className="block p-4 hover:bg-gray-700">Vendor Profile</Link></li>
-      </ul>
-      {commonSidebar}
-    </>
-  );
-
-  // Render sidebar based on user role
-  const renderSidebar = () => {
-    switch (userRole) {
-      case 'admin':
-        return adminSidebar;
-      case 'customer':
-        return customerSidebar;
-      case 'vendor':
-        return vendorSidebar;
-      default:
-        return <div>Unauthorized access</div>;
-    }
+  // Handle category click and navigate to the shop page with category filter
+  const handleCategoryClick = (categoryName) => {
+    navigate(`/shop?category=${categoryName}`);
   };
 
-  return <div className="sidebar w-60 bg-gray-800 text-white">{renderSidebar()}</div>;
+  if (categories.length === 0) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="w-64 bg-gray-800 text-white fixed top-0 left-0 h-full p-4">
+      <h2 className="text-2xl font-bold mb-4">Categories</h2>
+      <ul>
+        {categories.map((category) => (
+          <li
+            key={category.id}
+            className="cursor-pointer hover:bg-gray-600 p-2 rounded-lg"
+            onClick={() => handleCategoryClick(category.name)} // Navigate to shop with category
+          >
+            {category.name}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+Sidebar.propTypes = {
+  categories: PropTypes.array.isRequired,
 };
 
 export default Sidebar;

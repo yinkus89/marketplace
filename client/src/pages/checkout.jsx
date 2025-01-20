@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-
-const stripePromise = loadStripe('your-publishable-key-here');  // Use your own Stripe publishable key
 
 const Checkout = () => {
   const { state } = useCart();
@@ -18,8 +14,6 @@ const Checkout = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
-  const stripe = useStripe();
-  const elements = useElements();
 
   // Use useEffect to fetch user data if the user is already registered or logged in
   useEffect(() => {
@@ -50,42 +44,20 @@ const Checkout = () => {
       return;
     }
 
-    if (paymentMethod === 'creditCard' && !stripe) {
-      alert('Stripe is not loaded yet.');
-      return;
-    }
+    // Simulate order submission
+    console.log('Order Submitted:', {
+      cartItems,
+      isRegistered,
+      email,
+      name,
+      password,
+      shippingAddress,
+      phoneNumber, // Added phone number to order details
+      paymentMethod,
+    });
 
-    // Handle Stripe payment method
-    if (paymentMethod === 'creditCard') {
-      const { error, paymentMethod: stripePaymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: elements.getElement(CardElement),
-      });
-
-      if (error) {
-        setErrorMessage(error.message);
-        return;
-      }
-
-      console.log('Payment method created: ', stripePaymentMethod);
-      // Here you would send the paymentMethod.id to your server to complete the payment process.
-      
-      // Simulate order submission
-      console.log('Order Submitted:', {
-        cartItems,
-        isRegistered,
-        email,
-        name,
-        password,
-        shippingAddress,
-        phoneNumber, // Added phone number to order details
-        paymentMethod,
-        stripePaymentMethod,
-      });
-
-      // After submission, navigate to the order confirmation page or home page
-      navigate('/order-confirmation');
-    }
+    // After submission, navigate to the order confirmation page or home page
+    navigate('/order-confirmation');
   };
 
   const handlePaymentMethodChange = (method) => {
@@ -223,13 +195,6 @@ const Checkout = () => {
           </div>
         </div>
 
-        {paymentMethod === 'creditCard' && (
-          <div className="mb-4">
-            <h4 className="text-xl font-semibold">Credit Card Details</h4>
-            <CardElement className="border px-4 py-2 rounded-md w-full focus:ring-2 focus:ring-blue-500" />
-          </div>
-        )}
-
         {paymentMethod === 'paypal' && (
           <div className="mb-4">
             <p className="text-xl">You will be redirected to PayPal to complete the payment.</p>
@@ -242,7 +207,6 @@ const Checkout = () => {
           <button
             type="submit"
             className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
-            disabled={!stripe}
           >
             Submit Order
           </button>
@@ -252,10 +216,4 @@ const Checkout = () => {
   );
 };
 
-const StripeWrapper = () => (
-  <Elements stripe={stripePromise}>
-    <Checkout />
-  </Elements>
-);
-
-export default StripeWrapper;
+export default Checkout;

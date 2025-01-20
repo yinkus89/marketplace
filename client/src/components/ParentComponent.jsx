@@ -1,19 +1,27 @@
 import React, { useState } from "react";
-import Sidebar from "./Sidebar"; // Make sure the path is correct based on your file structure
+import Sidebar from "./Sidebar";  // Assuming Sidebar is in the same directory
 
 const ParentComponent = () => {
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Example of category selection handler
   const handleCategorySelect = (category) => {
-    setSelectedCategory(category);
     console.log("Selected category:", category);
+    // You can add additional logic for when a category is selected
+  };
+
+  // Toggle sidebar visibility
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   return (
     <div>
-      <Sidebar onCategorySelect={handleCategorySelect} />
-      {/* Other content, you can display selectedCategory or other parts of your app here */}
-      {selectedCategory && <p>Selected Category: {selectedCategory}</p>}
+      <Sidebar
+        onCategorySelect={handleCategorySelect} // Ensure this function is passed
+        isSidebarOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
+      />
     </div>
   );
 };

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { globalNavigateAdmin } from "../utils/globalNavigateAdmin";
+import { globalNavigateVendor } from "../utils/globalNavigateVendor";
+import { globalNavigateUser } from "../utils/globalNavigateUser";
 
 const PrivateRoute = ({ roleRequired, element, ...rest }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -7,14 +10,20 @@ const PrivateRoute = ({ roleRequired, element, ...rest }) => {
   const [role, setRole] = useState(null);
   const location = useLocation(); // Get current location for redirection
 
-  // Role redirection mapping (you can centralize this if you have multiple roles)
-  const redirectPaths = {
-    vendor: "/vendor/dashboard",
-    customer: "/customer/dashboard",
-    admin: "/admin/dashboard",
+  // Role-based navigation utilities
+  const navigateMap = {
+    admin: globalNavigateAdmin,
+    vendor: globalNavigateVendor,
+    customer: globalNavigateUser,
   };
 
-  // Check authentication and role on component mount
+  // Role redirection mapping
+  const redirectPaths = {
+    admin: "/admin/dashboard",
+    vendor: "/vendor/dashboard",
+    customer: "/customer/dashboard",
+  };
+
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedRole = localStorage.getItem("role");
@@ -35,14 +44,22 @@ const PrivateRoute = ({ roleRequired, element, ...rest }) => {
 
   // If no token is found, redirect to login page
   if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    const navigateToLogin = navigateMap[roleRequired];
+    if (navigateToLogin) {
+      navigateToLogin(location, "/login");
+    }
+    return null; // Prevent further rendering
   }
 
   // If role doesn't match the required role, redirect to appropriate dashboard
   if (role !== roleRequired) {
+    const navigateToDashboard = navigateMap[role];
     const redirectPath = redirectPaths[role] || "/login"; // Fallback to /login if role doesn't match
 
-    return <Navigate to={redirectPath} replace />;
+    if (navigateToDashboard) {
+      navigateToDashboard(location, redirectPath);
+    }
+    return null; // Prevent further rendering
   }
 
   // Render the passed element if authorized

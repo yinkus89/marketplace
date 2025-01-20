@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion"; // Importing framer-motion
-import VendorSidebar from "./VendorSidebar";
-import InventoryManagement from "./InventoryManagement";
-import SalesAnalytics from "./SalesAnalytics";
-import OrderManagement from "./OrderManagement";
+import VendorSidebar from "../components/VendorSidebar";
+import InventoryManagement from "../dashboards/InventoryManagement";
+import SalesAnalytics from "../dashboards/SalesAnalytics";
+import OrderManagement from "../dashboards/OrderManagement";
 import VendorProfile from "../profiles/VendorProfile";
 import StoreList from "../components/StoreList";
 import CreateStoreForm from "../components/CreateStoreForm";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Spinner from "../components/Spinner";
+import { globalNavigateVendor } from "../utils/globalNavigateVendor";
 
 const VendorDashboard = () => {
   const [activeComponent, setActiveComponent] = useState("inventory");
@@ -18,11 +19,16 @@ const VendorDashboard = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // Wrapper function for navigation
+  const handleNavigation = (url) => {
+    globalNavigateVendor(navigate, url);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      navigate("/login");
+      handleNavigation("/login"); // Use globalNavigateVendor
     } else {
       axios
         .get(`${process.env.REACT_APP_API_URL}/verify-token`, {
@@ -40,7 +46,7 @@ const VendorDashboard = () => {
             err.response?.data?.message ||
               "Authentication failed. Please login again."
           );
-          navigate("/login");
+          handleNavigation("/login"); // Use globalNavigateVendor
         });
     }
   }, [navigate]);
@@ -48,7 +54,7 @@ const VendorDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsAuthenticated(false);
-    navigate("/login");
+    handleNavigation("/login"); // Use globalNavigateVendor
   };
 
   const renderContent = () => (

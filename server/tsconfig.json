@@ -4,12 +4,19 @@
     "module": "CommonJS",
     "strict": true,
     "esModuleInterop": true,
+    "moduleResolution": "node",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist"
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./dist",
+    "baseUrl": "./",  // Optional, if you're using custom module paths
+    "paths": {
+      "type/*": ["src/type/*"]  // Resolves imports from the 'type' folder correctly
+    }
   },
   "include": [
-    "src/**/*.ts",          // Includes all TypeScript files in the `src` folder
-    "src/types/**/*.d.ts"   // Includes custom type definitions in the `types` folder
+    "src/**/*.ts",           // Include all TypeScript files
+    "src/types/**/*.d.ts",   // Include custom type definitions
+    "src/type/**/*.ts"       // Include the 'type' folder, if necessary
   ]
 }

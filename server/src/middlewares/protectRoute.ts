@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { JWTPayload } from '../types/payload';  // Import JWTPayload from a separate file
+import { JWTPayload } from '../types/payload';  // Ensure JWTPayload is correctly defined
 
 // Extend the Request interface to include `user`
 declare global {
@@ -30,6 +30,6 @@ export const protectRoute = (req: Request, res: Response, next: NextFunction) =>
     next(); // Proceed to the next middleware/handler
   } catch (err) {
     console.error("JWT verification error:", err);  // Log the error for debugging purposes
-    res.status(400).json({ message: "Invalid token" });
+    return res.status(403).json({ message: "Invalid token" });  // Use 403 Forbidden for invalid token
   }
 };

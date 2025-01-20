@@ -1,3 +1,4 @@
+// src/components/ProfilePage.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminProfile from '../profiles/AdminProfile';
@@ -9,9 +10,9 @@ const ProfilePage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const role = localStorage.getItem('userRole');
+    const role = localStorage.getItem('role'); // Assuming role is stored in localStorage
     if (!role) {
-      // Redirect to login if the user role is not found
+      // Redirect to login if no role is found
       navigate('/login');
     } else {
       setUserRole(role);
@@ -20,16 +21,16 @@ const ProfilePage = () => {
 
   if (!userRole) return <div>Loading...</div>;
 
-  // Conditionally render the correct profile based on the user role
+  // Conditionally render based on user role
   switch (userRole) {
-    case 'ADMIN':
+    case 'admin':
       return <AdminProfile />;
-    case 'VENDOR':
+    case 'vendor':
       return <VendorProfile />;
-    case 'CUSTOMER':
+    case 'customer':
       return <CustomerProfile />;
     default:
-      return <Navigate to="/login" />;
+      return <div>You are not authorized to view this page.</div>;
   }
 };
 

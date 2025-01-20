@@ -1,32 +1,53 @@
 import React, { useState, useEffect } from 'react';
+import API from '../api/apiClient'; // Ensure API client is correctly imported
 
 const VendorProfile = () => {
-  // Mocking vendor data
-  const [vendorData, setVendorData] = useState({
-    name: 'Vendor A',
-    email: 'vendorA@example.com',
-    businessName: 'Vendor A LLC',
-    phone: '987-654-3210',
-    inventoryCount: 150,
-    ordersReceived: 200
-  });
+  const [vendorData, setVendorData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Simulate fetching data from an API
+  // Fetch vendor data from API
   useEffect(() => {
-    const fetchVendorData = () => {
-      // Simulate API call for vendor data
-      setVendorData({
-        name: 'Vendor A',
-        email: 'vendorA@example.com',
-        businessName: 'Vendor A LLC',
-        phone: '987-654-3210',
-        inventoryCount: 150,
-        ordersReceived: 200
-      });
+    const fetchVendorData = async () => {
+      try {
+        setLoading(true);
+        const response = await API.get('/vendor/profile'); // Adjust endpoint as needed
+        setVendorData(response.data);
+      } catch (err) {
+        setError(
+          err.response?.data?.message || 'Failed to fetch vendor data. Please try again.'
+        );
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchVendorData();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-600">
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  if (!vendorData) {
+    return (
+      <div className="p-6 text-center">
+        <p>No vendor data available.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-white shadow-md rounded-lg">

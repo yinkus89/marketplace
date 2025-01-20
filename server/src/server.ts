@@ -5,9 +5,9 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import compression from 'compression';
-import http from 'http';  // Import HTTP server
+import http from 'http';
 import prisma from './prisma/prismaClient';
-import socketIO from 'socket.io';  // Import Socket.IO
+import { Server } from 'socket.io'; // Import Socket.IO
 import productRoutes from './routes/productRoutes';
 import orderRoutes from './routes/orderRoutes';
 import categoryRoutes from './routes/categoryRoutes';
@@ -18,57 +18,65 @@ import customerRoutes from './routes/customerRoutes';
 import adminRoutes from './routes/adminRoutes';
 import storeRoutes from './routes/storeRoutes';
 import reviewRoutes from './routes/reviewRoutes';
-import wishlistRoutes from './routes/productRoutes';
-import productReviewRoutes from './routes/productRoutes';
+import wishlistRoutes from './routes/wishlistRoutes';
+import productReviewRoutes from './routes/productReviewRoutes';
+import { adminMiddleware, vendorMiddleware } from './middlewares/authMiddleware';
 dotenv.config();
 
 const app = express();
-const server = http.createServer(app);  // Create HTTP server with express
+const server = http.createServer(app);
 
-// Fix Socket.IO initialization
-const io = new socketIO.Server(server, {
+// Initialize Socket.IO server
+const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:5173', // Allow requests from your frontend domain (adjust for production)
+    origin: process.env.CLIENT_URL || 'http://localhost:5173', 
     methods: ['GET', 'POST'],
   },
 });
 
 // Rate limiting for all routes
 const globalRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutes
-  max: 100,  // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per window
   message: 'Too many requests, please try again later.',
 });
 app.use(globalRateLimiter);
 
 // Middleware Setup
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173', 
+  credentials: true, 
+}));
 app.use(express.json());
 app.use(morgan('dev'));
-app.use(helmet());  // Adds security headers
-app.use(compression());  // Compresses responses for faster transmission
+app.use(helmet({
+  contentSecurityPolicy: false, 
+}));
+app.use(compression());
 
 // Routes
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/categories', categoryRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/auth', authRoutes);  // This will handle both login and register
-app.use('/api/vendors', vendorRoutes);  // Add vendor routes
-app.use('/api/customers', customerRoutes);  // Add customer routes
-app.use('/api/admin', adminRoutes);  // Add admin routes
+app.use('/api/', userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/vendors', vendorRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/stores', storeRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/wishlist', wishlistRoutes);
-app.use('/api/product-reviews/{id}', productReviewRoutes);
+app.use('/api/product-reviews/:id', productReviewRoutes);
+app.use('/api/admin', adminMiddleware, adminRoutes);
+app.use('/api/vendor', vendorMiddleware, vendorRoutes);
 
 // Health Check Route
-app.get('/health', (req, res) => {
+app.get('/health', (_, res) => {
   res.status(200).json({ message: 'Server is healthy' });
 });
 
 // Error Handling Middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, _: express.Request, res: express.Response) => {
   console.error(err.stack);
   if (err.name === 'ValidationError') {
     return res.status(400).json({ message: 'Validation error', errors: err.errors });
@@ -86,16 +94,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
 
-  // Listen for a message from a customer or vendor
   socket.on('sendMessage', (data) => {
-    const { sender, message } = data; // sender can be 'customer' or 'vendor'
+    const { sender, message } = data;
     console.log(`New message from ${sender}: ${message}`);
 
-    // Broadcast the message to all clients (vendors or customers)
-    io.emit('newMessage', { sender, message });
+    io.emit('newMessage', { sender, message }); // Broadcast to all clients
   });
 
-  // Listen for typing status
   socket.on('typing', (data) => {
     const { sender, isTyping } = data;
     socket.broadcast.emit('typing', { sender, isTyping });
@@ -107,13 +112,10 @@ io.on('connection', (socket) => {
 });
 
 // Graceful Shutdown
-server.listen(process.env.PORT || 4001, () => {
-  console.log(`Server is running on port ${process.env.PORT || 4001}`);
-});
-
 process.on('SIGINT', async () => {
   console.log('Gracefully shutting down...');
-  await prisma.$disconnect();  // Ensure Prisma disconnects properly
+  await prisma.$disconnect();
+  io.close(); // Close WebSocket server
   server.close(() => {
     console.log('Server closed.');
     process.exit(0);
@@ -122,13 +124,15 @@ process.on('SIGINT', async () => {
 
 process.on('SIGTERM', async () => {
   console.log('Gracefully shutting down...');
-  await prisma.$disconnect();  // Ensure Prisma disconnects properly
+  await prisma.$disconnect();
+  io.close();
   server.close(() => {
     console.log('Server closed.');
     process.exit(0);
   });
 });
 
+// Unhandled promise rejections and uncaught exceptions
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
@@ -138,3 +142,10 @@ process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
   process.exit(1);
 });
+
+// Start the server
+server.listen(process.env.PORT || 4001, () => {
+  console.log(`Server is running on port ${process.env.PORT || 4001}`);
+});
+
+export default server;
